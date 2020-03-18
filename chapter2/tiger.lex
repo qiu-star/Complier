@@ -79,8 +79,8 @@ void removeDoubleQuotation(char * text)
 "print"                 {adjust(); return PRINT;}
 [0-9]+	                {adjust(); yylval.ival=atoi(yytext); return INT;}
 [_a-zA-Z][_a-zA-Z0-9]*  {adjust(); yylval.sval=String(yytext); return ID;}
-"/*"[ a-zA-Z0-9_/\-;.:=()\[\]"'\\]*"*/"   {adjust();}
-"\""[ a-zA-Z0-9_/\-;.:=()\[\]\\]*"\""   {adjust(); removeDoubleQuotation(yytext); yylval.sval=String(yytext); return STRING;}
+"/*".*"*/"  		{adjust();}
+"\""[^"]*"\""   	{adjust(); removeDoubleQuotation(yytext); yylval.sval=String(yytext); return STRING;}
 [0-9]+"."[0-9]+         {adjust(); yylval.fval=atof(yytext); return REAL;}
-.	                    {adjust(); EM_error(EM_tokPos,"illegal token");}
+.	                {adjust(); EM_error(EM_tokPos,"illegal token");}
 %%
