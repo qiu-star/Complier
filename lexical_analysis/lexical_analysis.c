@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "util.h"
 #include "errormsg.h"
 #include "tokens.h"
@@ -18,7 +19,7 @@ string toknames[] = {
 };
 
 
-string tokname(tok) {
+string tokname(int tok) {
   return toknames[tok];
 }
 
