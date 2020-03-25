@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "vector": "c",
+        "util.h": "c",
+        "errormsg.h": "c",
+        "tokens.h": "c"
+    }
+}

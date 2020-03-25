@@ -72,5 +72,5 @@ void removeDoubleQuotation(char * text)
 [_a-zA-Z][_a-zA-Z0-9]*  {adjust(); yylval.sval=String(yytext); return ID;}
 "/*".*"*/"  		    {adjust();}
 "\""[^"]*"\""   	    {adjust(); removeDoubleQuotation(yytext); yylval.sval=String(yytext); return STRING;}
-.                       {adjust(); return ERROR;}
+.                       {adjust(); EM_error(EM_tokPos,"illegal token");}
 %%

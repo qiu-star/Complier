@@ -7,6 +7,20 @@ typedef union
 } YYSTYPE;
 extern YYSTYPE yylval;
 
+typedef struct token
+{
+    int type;
+    union
+    {
+        int ival;
+        string sval;
+        float fval;
+        char cval;
+    }value;
+    struct token *next;   
+}token;
+
+
 /**
  * C语言出现冒号是什么情况,
  * long short型是否弄，
