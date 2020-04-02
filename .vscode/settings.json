@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "tokens.h": "c",
+        "string": "cpp",
+        "vector": "cpp",
+        "c0_grammar.h": "c",
+        "util.h": "c"
+    }
+}

@@ -1,13 +1,10 @@
-lextest: lexical_analysis.o lex.yy.o errormsg.o util.o
-	cc -g -o lextest lexical_analysis.o lex.yy.o errormsg.o util.o
+lextest: grammar.o lexical_analysis.o lex.yy.o util.o
+	cc -g -o grammartest grammar.o lexical_analysis.o lex.yy.o util.o
 
-lexical_analysis.o: lexical_analysis.c tokens.h errormsg.h util.h
+lexical_analysis.o: lexical_analysis.c tokens.h util.h
 	cc -g -c lexical_analysis.c
 
-errormsg.o: errormsg.c errormsg.h util.h
-	cc -g -c errormsg.c
-
-lex.yy.o: lex.yy.c tokens.h errormsg.h util.h
+lex.yy.o: lex.yy.c tokens.h util.h
 	cc -g -c lex.yy.c
 
 lex.yy.c: c.lex
@@ -16,5 +13,8 @@ lex.yy.c: c.lex
 util.o: util.c util.h
 	cc -g -c util.c
 
+grammar.o: grammar.c tokens.h util.h
+	cc -g -c grammar.c
+
 clean: 
-	rm -f a.out util.o lexical_analysis.o lex.yy.o lex.yy.c errormsg.o lextest
+	rm -f a.out util.o lexical_analysis.o lex.yy.o lex.yy.c grammar.o lextest

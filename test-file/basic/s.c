@@ -6,5 +6,5 @@ char func3()
     b = g_i1/g_i2;
     c = -(a+b);
     printf("\nc = ", c);
-    return ('K');
+    return ("K");
 }
