@@ -9,15 +9,7 @@ extern int symID;
 void init_lex(char *fname);
 void getsym();
 
-/**
- * 符号表
- */ 
-typedef struct
-{
-    string name;//符号名字
-    int type;//0-const 1-var 2-function 3-para
-    int value;//常量的值
-};
+
 
 
 /**
