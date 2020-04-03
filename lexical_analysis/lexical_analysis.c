@@ -25,13 +25,13 @@ string tokname(int tok)
     return toknames[tok];
 }
 
-void init_lex(char *fname)
+void initLex(char *fname)
 {
     yyin = fopen(fname,"r");
 }
 
 
-void getsym()
+void getSym()
 {
     symID = yylex();
 }

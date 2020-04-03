@@ -4,6 +4,13 @@
         "string": "cpp",
         "vector": "cpp",
         "c0_grammar.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "symbol.h": "c",
+        "string.h": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c"
     }
 }

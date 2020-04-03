@@ -1,3 +1,4 @@
+char a='a',b=2;
 char func3()
 {
     int a,b,c;

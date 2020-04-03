@@ -52,4 +52,4 @@ extern YYSTYPE yylval;
 #define ERROR "error"
 #define ERROR_OPERATION 40 // !
 #define ERROR_FORMAT 41 // ' ' " "
-#define ERROR_SYMBOL 42
+#define ERROR_SYMBOL 42 

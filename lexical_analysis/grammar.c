@@ -2,12 +2,13 @@
 #include "tokens.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "symbol.h"
 
 extern YYSTYPE yylval;
 extern int symID;
 
-void init_lex(char *fname);
-void getsym();
+void initLex(char *fname);
+void getSym();
 
 
 
@@ -21,26 +22,36 @@ void getsym();
  *char a = ‘1’,b = ‘2’,c = ‘3’
  *type为INTSYM or CHARSYM
 */
-void const_define(int type)
+void constDefine(int type)
 {
     string symIDName;
-    getsym();
+    getSym();
     if(symID == IDSYM)
     {
         symIDName = String(yylval.sval);
-        getsym();
+        getSym();
         if(symID == ASSIGNSYM)
         {
-            getsym();
+            getSym();
             if(type == INTSYM && symID == DIGSYM)
             {
-
+                insertSymTab(symIDName, 0, yylval.ival, -1);
             }
             else if(type == CHARSYM && symID == LETTERSYM)
             {
-
+                insertSymTab(symIDName, 0, yylval.sval[1], -1);
+            }
+            else
+            {
+                fprintf(stderr,"const defination error!\n"); 
+                exit(1);
             }
         }
+        else
+        {
+            fprintf(stderr,"const defination: assign miss error!\n"); 
+            exit(1);
+        }  
     }
 }
 
@@ -51,7 +62,10 @@ int main(int argc, char **argv)
         fprintf(stderr,"usage: a.out filename\n"); 
         exit(1);
     }
-    init_lex(argv[1]);
+    initLex(argv[1]);
+    getSym();
+    constDefine(symID);
+    printSymTab();
     //getsym();
     //printf("%d\n",symID);
     return 0;
