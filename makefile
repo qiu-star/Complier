@@ -20,4 +20,4 @@ grammar.o: grammar.c tokens.h util.h
 	cc -g -c grammar.c
 
 clean: 
-	rm -f a.out util.o lexical_analysis.o lex.yy.o lex.yy.c grammar.o grammartest
+	rm -f a.out util.o lexical_analysis.o lex.yy.o lex.yy.c grammar.o grammartest symbol.o
