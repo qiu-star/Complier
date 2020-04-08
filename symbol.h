@@ -5,14 +5,15 @@
 
 #define MAX 512
 /**
- * 符号;网上代码要记录address，但是我现在没遇到需要记录的情况，所以暂且没设置这个变量
+ * 符号
  */ 
 typedef struct
 {
     string name;//符号名字
-    int type;//0-const 1-var 2-function 3-para
-    int value;//常量的值（字符也以int值存储），如果标识符是一个函数名，用1表示函数类型为int，0为void
+    int type;//0-const常量 1-var变量 2-function 3-para
+    int value;//常量的值（字符也以int值存储），如果标识符是一个函数名，用1表示函数类型为int，2表示char，0为void
     int para;//函数参数个数或者数组大小
+    int address;
 } Symbol;
 /**
  * 符号表;网上代码有符号表栈顶指针，当前符号表有的分程序总数，分程序索引，但我现在没有这种需求
@@ -27,5 +28,5 @@ typedef struct
  
 SymbolTable symTable;
 
-void insertSymTab(string name, int type, int value, int para);
+void insertSymTab(string name, int type, int value, int para, int address);
 void printSymTab();

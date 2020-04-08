@@ -3,7 +3,7 @@
 /**
  * 如果符号类型是function
  */ 
-void insertSymTabFun(string name, int type, int value, int para)
+void insertSymTabFun(string name, int type, int value, int para, int address)
 {
     //查找分程序中是否有与它名字相同的
     int i;
@@ -22,16 +22,18 @@ void insertSymTabFun(string name, int type, int value, int para)
     symTable.element[symTable.length].type = type;
     symTable.element[symTable.length].value = value;//函数的value指的是返回值为char or int
     symTable.element[symTable.length].para = para;//参数个数
+    symTable.element[symTable.length].address = address;
     symTable.length += 1;
 }
 
 /**
  * 如果符号类型是const var para
  */ 
-void insertSymTabElse(string name, int type, int value, int para)
+void insertSymTabElse(string name, int type, int value, int para, int address)
 {
     //从当前分程序中查找是否有与它名字相同的
-    for(int i = symTable.proIndex[symTable.totalPro-1]; i < symTable.length; i++)
+    int index = (symTable.totalPro-1)>0? (symTable.totalPro-1):0;
+    for(int i = symTable.proIndex[index]; i < symTable.length; i++)
     {
         if(strcmp(symTable.element[i].name, name) == 0)
         {
@@ -40,16 +42,18 @@ void insertSymTabElse(string name, int type, int value, int para)
         }
     }
 
-    symTable.proIndex[symTable.totalPro] = symTable.length;
-    symTable.totalPro += 1; 
     symTable.element[symTable.length].name = String(name);
     symTable.element[symTable.length].type = type;
     symTable.element[symTable.length].value = value;//函数的value指的是返回值为char or int
     symTable.element[symTable.length].para = para;//参数个数
+    symTable.element[symTable.length].address = address;
     symTable.length += 1;
 }
 
-void insertSymTab(string name, int type, int value, int para)
+/**
+ * 暂时不支持全局变量；解决方法：可以定优先级，首先定义全局，再局部
+ */ 
+void insertSymTab(string name, int type, int value, int para, int address)
 {
     if(symTable.length >= MAX)
     {
@@ -59,11 +63,11 @@ void insertSymTab(string name, int type, int value, int para)
 
     if(type == 2)//如果是function
     {
-        insertSymTabFun(name, type, value, para);
+        insertSymTabFun(name, type, value, para, address);
     }
     else//如果是const var para
     {
-        insertSymTabElse(name, type, value, para);
+        insertSymTabElse(name, type, value, para, address);
     }
     
 }
@@ -72,6 +76,6 @@ void printSymTab()
 {
     for(int i = 0; i < symTable.length; i++)
     {
-        printf("name: %s\ttype: %d\tvalue: %d\tparam: %d\n",symTable.element[i].name,symTable.element[i].type,symTable.element[i].value,symTable.element[i].para);
+        printf("name: %10s type: %2d value: %2d param: %2d address: %2d\n",symTable.element[i].name,symTable.element[i].type,symTable.element[i].value,symTable.element[i].para,symTable.element[i].address);
     }
 }
