@@ -74,8 +74,12 @@ void insertSymTab(string name, int type, int value, int para, int address)
 
 void printSymTab()
 {
+    FILE *f = fopen("result/symbolList.txt","w");
+    printf("----------------------符号表----------------------\n");
     for(int i = 0; i < symTable.length; i++)
     {
-        printf("name: %10s type: %2d value: %2d param: %2d address: %2d\n",symTable.element[i].name,symTable.element[i].type,symTable.element[i].value,symTable.element[i].para,symTable.element[i].address);
+        char* tmp = (char*)malloc(sizeof(char)*128);
+        sprintf(tmp,"name: %10s type: %2d value: %2d param: %2d address: %2d\n",symTable.element[i].name,symTable.element[i].type,symTable.element[i].value,symTable.element[i].para,symTable.element[i].address);
+        fwrite(tmp,sizeof(char),strlen(tmp),f);
     }
 }

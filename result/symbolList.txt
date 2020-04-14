@@ -1,0 +1,8 @@
+name:          a type:  0 value:  1 param: -1 address:  1
+name:          b type:  0 value:  2 param: -1 address:  2
+name:         aa type:  0 value:  1 param: -1 address:  3
+name:         bb type:  0 value:  2 param: -1 address:  4
+name:          c type:  1 value:  1 param:  9 address: 13
+name:          d type:  1 value:  1 param: -1 address: 14
+name:         cc type:  1 value:  2 param: -1 address: 15
+name:         dd type:  1 value:  2 param: -1 address: 16

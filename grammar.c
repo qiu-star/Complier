@@ -1,8 +1,4 @@
-#include "util.h"
-#include "tokens.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "symbol.h"
+#include"grammar.h"
 
 extern YYSTYPE yylval;
 extern int symID;
@@ -40,11 +36,13 @@ void constDefine(int type)
                 {
                     address++;
                     insertSymTab(symIDName, 0, yylval.ival, -1, address);
+                    insertIntIntoFourVarCodeTab("const","int",yylval.ival,symIDName);
                 }
                 else if(type == CHARSYM && symID == LETTERSYM)
                 {
                     address++;
                     insertSymTab(symIDName, 0, yylval.sval[1], -1, address);
+                    insertStringIntoFourVarCodeTab("const","char",yylval.sval,symIDName);
                 }
                 else
                 {
@@ -130,12 +128,16 @@ void varDefine(int type)
                     address += para;
                     insertSymTab(symIDName, 1, type, para, address);
                     getSym();
+                    if(type == INTSYM) insertIntIntoFourVarCodeTab("inta","",para,symIDName);
+                    else if(type == CHARSYM) insertIntIntoFourVarCodeTab("chara","",para,symIDName);
                 }
                 else
                 {
                     address++;
                     para = -1;
                     insertSymTab(symIDName, 1, type, para, address);
+                    if(type == INTSYM) insertStringIntoFourVarCodeTab("int","","",symIDName);
+                    else if(type == CHARSYM) insertStringIntoFourVarCodeTab("char","","",symIDName);
                 }
 
                 if(symID == SEMICSYM)// ;
@@ -169,8 +171,18 @@ void varDefine(int type)
         varDefine(type);
         getSym();
         type = symID;
-    } while (type == INTSYM || type == CHARSYM);
+    }while (type == INTSYM || type == CHARSYM);
  }
+
+ /**
+  * ＜因子＞ ::= ＜标识符＞｜＜标识符＞‘[’＜表达式＞‘]’｜＜整数＞|＜字符＞｜＜有返回值函数调用语句＞|‘(’＜表达式＞‘)’
+  * 分析：描述因子的格式，因子是以标识符或者标识符[表达式]或者整数或者字符或者有返回值函数的调用语句或者（表达式）
+  * 样例：
+  * a[2] 
+  * num 
+  * b 
+  * (a-b+c*d)
+  */ 
 
 int main(int argc, char **argv)
 {
@@ -190,6 +202,7 @@ int main(int argc, char **argv)
         varDeclare(symID);
     }
     printSymTab();
+    printFourVarCodeTab();
     //getsym();
     //printf("%d\n",symID);
     return 0;
