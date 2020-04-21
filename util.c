@@ -24,3 +24,12 @@ string String(char *s)
   return p;
 }
 
+/**
+ * 将数字转为字符串
+ */ 
+char* itoa(int num)
+{
+    char* tmp = (char*)malloc(sizeof(char)*128);
+    sprintf(tmp,"%d",num);
+    return tmp;
+}

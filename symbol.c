@@ -1,5 +1,11 @@
 #include "symbol.h"
 
+void initSymTab()
+{
+    symTable.length = 0;
+    symTable.totalPro = 1;
+}
+
 /**
  * 如果符号类型是function
  */ 
@@ -7,7 +13,8 @@ void insertSymTabFun(string name, int type, int value, int para, int address)
 {
     //查找分程序中是否有与它名字相同的
     int i;
-    for(i = 0;i < symTable.totalPro; i++)
+    //i=0分配给全局变量
+    for(i = 1;i < symTable.totalPro; i++)
     {
         if(strcmp(symTable.element[symTable.proIndex[i]].name, name) == 0)
         {
@@ -32,7 +39,7 @@ void insertSymTabFun(string name, int type, int value, int para, int address)
 void insertSymTabElse(string name, int type, int value, int para, int address)
 {
     //从当前分程序中查找是否有与它名字相同的
-    int index = (symTable.totalPro-1)>0? (symTable.totalPro-1):0;
+    int index = (symTable.totalPro-1);
     for(int i = symTable.proIndex[index]; i < symTable.length; i++)
     {
         if(strcmp(symTable.element[i].name, name) == 0)
@@ -51,7 +58,7 @@ void insertSymTabElse(string name, int type, int value, int para, int address)
 }
 
 /**
- * 暂时不支持全局变量；解决方法：可以定优先级，首先定义全局，再局部
+ * 首先定义全局，全局变量存在最前面，再局部
  */ 
 void insertSymTab(string name, int type, int value, int para, int address)
 {
@@ -68,6 +75,83 @@ void insertSymTab(string name, int type, int value, int para, int address)
     else//如果是const var para
     {
         insertSymTabElse(name, type, value, para, address);
+    }
+    
+}
+
+/**
+ * @param name 符号名
+ * @param ifFunction 该符号是否为函数
+ * @param paraNum 如果是函数，那么调用该函数的参数个数是多少；如果不是函数，该参数为是否为数组，如果是数组为1,不是数组为0
+ */ 
+int searchSymTab(string name, int ifFunction, int paraNum)
+{
+    if(ifFunction)
+    {
+        //在分程序名中查找
+        int i;
+        for(i = 0; i < symTable.totalPro; i++)
+        {
+            if(strcmp(name, symTable.element[symTable.proIndex[i]].name) == 0)
+            {
+                break;
+            }
+        }
+        if(i == symTable.totalPro) return 0;
+        //比对参数个数
+        if(paraNum != symTable.element[symTable.proIndex[i]].para) return 0;
+        //@TODO 比对参数类型
+        return 1;
+    }
+    else
+    {
+        //查找变量
+        int i;
+        int index = (symTable.totalPro-1);
+        for(i = symTable.proIndex[index]; i < symTable.length; i++)
+        {
+            if(strcmp(name, symTable.element[i].name) == 0) break;
+        }
+        if(i == symTable.length)//在全局变量中找，也就是在程序段数为0的区域找
+        {
+            int j;
+            for(j = 0; i < symTable.proIndex[1]; i++)
+            {
+                if(strcmp(name, symTable.element[i].name)) break;
+            }
+            if(j == symTable.proIndex[1]) return 0;
+            //是不是数组
+            if(paraNum && symTable.element[j].para == -1) return 0;
+            
+            if(symTable.element[j].type == 3) return 0;//参数表
+            if(symTable.element[j].type == 0)//如果是常量
+            {
+                isConst = 1;
+                return symTable.element[j].value;
+            }
+            if(symTable.element[j].type == 1)//如果是变量
+            {
+                if(symTable.element[j].para != -1)
+                {
+                    isArr = 1;
+                }
+                return symTable.element[j].address;
+            }
+        }
+        if(symTable.element[i].type == 3) return 0;//参数表
+        if(symTable.element[i].type == 0)
+        {
+            isConst = 1;
+            return symTable.element[i].value;
+        }
+        if(symTable.element[i].type == 1)
+        {
+            if(symTable.element[i].para != -1)
+            {
+                isArr = 1;
+            }
+            return symTable.element[i].address;
+        }
     }
     
 }

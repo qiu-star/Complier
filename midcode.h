@@ -21,11 +21,14 @@ typedef struct
 typedef struct
 {
     FourVarCode element[MAX];
-    int length;
+    int length;//记录四元式表中的项数
 }FourVarCodeTab;
 
 FourVarCodeTab fourVarCodeTab;
+int varNum = 0;//自动生成的变量个数（用于返回自动生成的变量名
 
+void initFourVarCodeTab();
 void insertIntIntoFourVarCodeTab(char* op, char* a, int b, char* result);
 void insertStringIntoFourVarCodeTab(char* op, char* a, char* b, char* result);
+string generateVar();
 void printFourVarCodeTab();

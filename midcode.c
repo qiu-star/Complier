@@ -1,14 +1,8 @@
 #include "midcode.h"
 
-
-/**
- * 将数字转为字符串
- */ 
-char* itoa(int num)
+void initFourVarCodeTab()
 {
-    char* tmp = (char*)malloc(sizeof(char)*128);
-    sprintf(tmp,"%d",num);
-    return tmp;
+    fourVarCodeTab.length=0;
 }
 
 void insertIntIntoFourVarCodeTab(char* op, char* a, int b, char* result)
@@ -41,6 +35,18 @@ void insertStringIntoFourVarCodeTab(char* op, char* a, char* b, char* result)
     fourVarCodeTab.element[length].num_b = String(b);
     fourVarCodeTab.element[length].rst = String(result);
     fourVarCodeTab.length += 1;
+}
+
+/**
+ * 生成一个变量名
+ * @return 返回生成的变量名
+ */ 
+string generateVar()
+{
+    char* var = (char*)malloc(sizeof(char)*16);
+    sprintf(var,"$_%d", varNum);
+    varNum++;
+    return var;
 }
 
 void printFourVarCodeTab()

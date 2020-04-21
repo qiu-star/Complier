@@ -28,5 +28,10 @@ typedef struct
  
 SymbolTable symTable;
 
+int isConst=0;
+int isArr=0;
+
+void initSymTab();
 void insertSymTab(string name, int type, int value, int para, int address);
+int searchSymTab(string name, int ifFunction, int paraNum);
 void printSymTab();

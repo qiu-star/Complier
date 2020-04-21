@@ -164,15 +164,15 @@ void varDefine(int type)
  * ＜变量说明＞ ::= ＜变量定义＞;{＜变量定义＞;}
  * 分析：定义变量说明语句的格式，是一个或更多的形如 变量定义； 的字符串 
  */
- void varDeclare(int type)
- {
+void varDeclare(int type)
+{
     do
     {
         varDefine(type);
         getSym();
         type = symID;
     }while (type == INTSYM || type == CHARSYM);
- }
+}
 
  /**
   * ＜因子＞ ::= ＜标识符＞｜＜标识符＞‘[’＜表达式＞‘]’｜＜整数＞|＜字符＞｜＜有返回值函数调用语句＞|‘(’＜表达式＞‘)’
@@ -182,7 +182,166 @@ void varDefine(int type)
   * num 
   * b 
   * (a-b+c*d)
-  */ 
+  * @return 因子在符号表的名称（字符串）
+  */
+string factor()
+{
+    string symIDName;
+    string res;
+    //如果是标识符
+    //＜因子＞ ::= ＜标识符＞
+    //＜因子＞ ::= ＜标识符＞‘[’＜表达式＞‘]’
+    //＜因子＞ ::= ＜有返回值函数调用语句＞
+    if(symID == IDSYM)
+    {
+        symIDName = String(yylval.sval);
+        getSym();
+        if(symID == LMPARENSYM)//'[' 数组
+        {
+            getSym();
+            string exprName = expression();//表达式
+            if(symID != RMPARENSYM)//']'
+            {
+                fprintf(stderr,"factor: miss ']' error!\n"); 
+                exit(1);
+            }
+            //调用之前先检查在符号表里是否有该式子
+            if(!searchSymTab(symIDName,0,1))
+            {
+                fprintf(stderr,"symTable don't have %s!\n",symIDName); 
+                exit(1);
+            }
+            //a=b[i];   =>  aassi,b,i,a //array赋值
+            res = generateVar();
+            insertStringIntoFourVarCodeTab("aassi",symIDName,exprName,res);
+            getSym();
+            return res;
+        }
+        else if(symID == LPARENSYM)//'(' 函数调用
+        {
+            getSym();
+            int paraNum = valuePara();//值参数表
+            if(symID != RPARENSYM)
+            {
+                fprintf(stderr,"factor: miss ')' error!\n"); 
+                exit(1);
+            }
+            //调用之前先检查在符号表里是否有该式子
+            if(!searchSymTab(symIDName,1,paraNum))
+            {
+                fprintf(stderr,"call function %s error!\n",symIDName); 
+                exit(1);
+            }
+            //a = f();//有返回值函数调用    =>	call,f,,a
+            res = generateVar();
+            insertStringIntoFourVarCodeTab("call",symIDName,"",res);
+            getSym();
+            return res;
+        }
+        else//标识符
+        {
+            int t = searchSymTab(symIDName, 0, 0);
+            if(t == 0)
+            {
+                fprintf(stderr,"symTable don't have %s!\n"); 
+                exit(1);
+            }
+            if(isConst)
+            {
+                return itoa(t);//直接将const值返回
+                isConst = 0;
+            }
+            return symIDName;
+        }
+    }
+    else if(symID == LPARENSYM)//＜因子＞ ::= ‘(’＜表达式＞‘)’
+    {
+        getSym();
+        string exprName = expression();
+        if(symID != RPARENSYM)
+        {
+            fprintf(stderr,"factor: miss ')' error!\n"); 
+            exit(1);
+        }
+        getSym();
+        return exprName;
+    }
+    else if(symID == LETTERSYM)//＜因子＞ ::= ＜字符＞
+    {
+        res = yylval.sval;
+        getSym();
+        return res;
+    }
+    else if(symID == DIGSYM)//＜因子＞ ::= ＜整数＞（无符号
+    {
+        res = itoa(yylval.ival);
+        getSym();
+        return res;
+    }
+    else if(symID == PLUSSYM || symID == MINUSSYM)//＜因子＞ ::= ＜整数＞（有符号
+    {
+        int sign = (symID == PLUSSYM)? 1: -1;
+        getSym();
+        if(symID != DIGSYM)
+        {
+            fprintf(stderr,"factor error: expect a digital number!\n"); 
+            exit(1);
+        }
+        res = itoa(sign * yylval.ival);
+        return res;
+    }
+    else
+    {
+        fprintf(stderr,"factor error!\n"); 
+        exit(1);
+    }
+    
+}
+
+/**
+ * ＜项＞ ::= ＜因子＞{＜乘法运算符＞＜因子＞}
+ * 分析：描述项的组成格式，以因子开始，后面接若干个 乘法运算符 因子 的组合
+ * 样例：a a*b
+ */ 
+void item()
+{
+
+}
+
+/**
+ * ＜表达式＞ ::= ［＋｜－］＜项＞{＜加法运算符＞＜项＞}
+ * 分析：描述表达式的格式，以项开始，后接若干个 加法运算符 项 的组合，注意，第一个项前面可能有正负号，如果有，则只能有一个。
+ * 样例：
+ * a + b – (a+b)
+ * @returns 表达式在符号表的名称（字符串）
+ */ 
+string expression()
+{
+
+}
+
+/**
+ * ＜值参数表＞ ::= ＜表达式＞{,＜表达式＞}｜＜空＞
+ * 分析：描述值参数表的格式，是若干个表达式或者空，若为多个表达式，则中间以，分割
+ * 样例：a,b 
+ * @returns 返回参数表的个数
+ */ 
+int valuePara()
+{
+    /*
+    人工算first集，然后得到判别条件：
+    ＜表达式＞    ::= ［＋｜－］＜项＞{＜加法运算符＞＜项＞}
+    ＜项＞     ::= ＜因子＞{＜乘法运算符＞＜因子＞}
+    ＜因子＞    ::= ＜标识符＞｜＜标识符＞‘[’＜表达式＞‘]’｜＜整数＞|＜字符＞｜＜有返回值函数调用语句＞|‘(’＜表达式＞‘)’
+    ＜有返回值函数调用语句＞ ::= ＜标识符＞‘(’＜值参数表＞‘)’
+    First(有返回值函数调用语句)={标识符}
+    First(因子)={标识符, 整数DIGSYM, 字符LETTERSYM, ( }
+    First(项)=First(因子)
+    First(表达式)={+, -, 标识符, 整数DIGSYM, 字符LETTERSYM, ( }
+    最终得到结果：First(值参数表)=First(表达式)
+    */
+
+}
 
 int main(int argc, char **argv)
 {
@@ -191,6 +350,7 @@ int main(int argc, char **argv)
         fprintf(stderr,"usage: a.out filename\n"); 
         exit(1);
     }
+    initFourVarCodeTab();
     initLex(argv[1]);
     getSym();
     if(symID == CONSTSYM)

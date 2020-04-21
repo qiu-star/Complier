@@ -8,4 +8,5 @@ typedef char bool;
 
 void *checked_malloc(int);
 string String(char *);
+char* itoa(int num);
 
