@@ -15,6 +15,7 @@ string item();
 string expression();
 int valuePara();
 void state();
+void states();
 void ifState();
 void condition();
 void loopState();

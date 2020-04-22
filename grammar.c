@@ -441,6 +441,17 @@ int valuePara()
    return paraNum;
 }
 
+void states()
+{
+    do
+    {
+        state();
+    } while (symID == IFSYM || symID == DOSYM || symID == FORSYM 
+        || symID == LBPARENSYM || symID == IDSYM || symID == SCANFSYM
+        || symID == PRINTFSYM || symID == RETURNSYM || symID == SEMICSYM);
+    
+}
+
 /**
  * ＜语句＞ ::= ＜条件语句＞｜＜循环语句＞｜‘{’＜语句列＞‘}’｜＜有返回值函数调用语句＞;|＜无返回值函数调用语句＞;｜＜赋值语句＞;｜＜读语句＞;｜＜写语句＞;｜＜空＞;｜＜返回语句＞;
  * 分析：描述语句的格式，语句是条件语句或者循环语句或者｛语句列｝或者有返回值函数调用语句；或者无返回值函数调用语句；或者赋值语句；或者读语句；或者写语句；或者空；或者返回语句；
@@ -466,7 +477,7 @@ void state()
          * }
          */
         getSym();
-        state();
+        states();
         if(symID != RBPARENSYM)
         {
             fprintf(stderr,"states: miss '}'!\n"); 
@@ -484,13 +495,19 @@ void state()
             /**
              * ＜赋值语句＞ ::= ＜标识符＞＝＜表达式＞|＜标识符＞‘[’＜表达式＞‘]’=＜表达式＞
              * 分析：描述赋值语句的格式，是 标识符=表达式 或者 标识符[表达式] = 表达式的形式
-             * 样例：a = b a[m-1] = c + d
+             * 样例：a = b
              */
             if(searchSymTab(symIDName,0,-1) == 0)
             {
                 fprintf(stderr,"undeclare %s!\n",symIDName); 
                 exit(1);
             } 
+            if(getIsConst())//常量不能赋值
+            {
+                setIsConst(0);
+                fprintf(stderr,"for: %s is const, but want a var!\n",symIDName);
+                exit(1);
+            }
             getSym();
             tmp = expression();
             if(symID != SEMICSYM)//;
@@ -534,9 +551,49 @@ void state()
         {
             getSym();
         }
+        else if(symID == LMPARENSYM)//[
+        {
+            getSym();
+            string e = expression();
+            if(symID != RMPARENSYM)//]
+            {
+                fprintf(stderr,"expect ']' !\n");
+                exit(1);
+            }
+            getSym();
+            if(symID == ASSIGNSYM)
+            {
+                /**
+                 * ＜赋值语句＞ ::= ＜标识符＞＝＜表达式＞|＜标识符＞‘[’＜表达式＞‘]’=＜表达式＞
+                 * 分析：描述赋值语句的格式，是 标识符=表达式 或者 标识符[表达式] = 表达式的形式
+                 * 样例：a[m-1] = c + d
+                 */
+                if(searchSymTab(symIDName,0,1) == 0)
+                {
+                    fprintf(stderr,"undeclare %s!\n",symIDName); 
+                    exit(1);
+                } 
+                if(getIsConst())//常量不能赋值
+                {
+                    setIsConst(0);
+                    fprintf(stderr,"for: %s is const, but want a var!\n",symIDName);
+                    exit(1);
+                }
+                getSym();
+                tmp = expression();
+                if(symID != SEMICSYM)//;
+                {
+                    fprintf(stderr,"expect ';' !\n");
+                    exit(1);
+                }
+                //a=b   =>  =,b,,a
+                insertStringIntoFourVarCodeTab("[]=",tmp,e,symIDName);
+                getSym();
+            }
+        }
         else
         {
-            fprintf(stderr,"state error!\n");
+            fprintf(stderr,"state error %d!\n",symID);
             exit(1);
         }
         
@@ -743,15 +800,16 @@ void loopState()
             fprintf(stderr,"for: expect id !\n");
             exit(1);
         }
-        string symIDName = yylval.sval;
-        if(searchSymTab(symIDName,0,0) == 0)
+        string s1 = yylval.sval;
+        if(searchSymTab(s1,0,0) == 0)
         {
-            fprintf(stderr,"for: %s undefine!\n",symIDName);
+            fprintf(stderr,"for: %s undefine!\n",s1);
             exit(1);
         }
         if(getIsConst())//常量也不能赋值
         {
-            fprintf(stderr,"for: %s is const, but want a var!\n",symIDName);
+            setIsConst(0);
+            fprintf(stderr,"for: %s is const, but want a var!\n",s1);
             exit(1);
         }
         getSym();
@@ -762,7 +820,7 @@ void loopState()
         }
         getSym();
         string e = expression();
-        insertStringIntoFourVarCodeTab("=",e,"",symIDName);
+        insertStringIntoFourVarCodeTab("=",e,"",s1);
         if(symID != SEMICSYM)
         {
             fprintf(stderr,"for: expect ';' !\n");
@@ -772,8 +830,92 @@ void loopState()
 
         insertStringIntoFourVarCodeTab("lab:","","",again);
         condition(1);
-        //如果不等于
+        //如果不符合条件，则跳出
+        insertStringIntoFourVarCodeTab("jne","","",out);
+        if(symID != SEMICSYM)
+        {
+            fprintf(stderr,"for: expect ';' !\n");
+            exit(1);
+        }
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"for: expect id !\n");
+            exit(1);
+        }
+        string s2 = yylval.sval;
+        if(searchSymTab(s2,0,0) == 0)
+        {
+            fprintf(stderr,"for: %s undefine!\n",s2);
+            exit(1);
+        }
+        if(getIsConst())//常量也不能赋值
+        {
+            setIsConst(0);
+            fprintf(stderr,"for: %s is const, but want a var!\n",s2);
+            exit(1);
+        }
+        getSym();
+        if(symID != ASSIGNSYM)
+        {
+            fprintf(stderr,"for: expect '=' !\n");
+            exit(1);
+        }
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"for: expect id !\n");
+            exit(1);
+        }
+        string s3 = yylval.sval;
+        if(searchSymTab(s3,0,0) == 0)
+        {
+            fprintf(stderr,"for: %s undefine!\n",s3);
+            exit(1);
+        }
+        if(getIsConst())//常量也不能赋值
+        {
+            fprintf(stderr,"for: %s is const, but want a var!\n",s3);
+            setIsConst(0);
+            exit(1);
+        }
+        getSym();
+        if(symID != PLUSSYM && symID != MINUSSYM)
+        {
+            fprintf(stderr,"for: expect +/- !\n");
+            exit(1);
+        }
+        string op;
+        if(symID == PLUSSYM)
+        {
+            op = String("+");
+        }
+        else
+        {
+            op = String("-");
+        }
+        getSym();
+        if(symID != DIGSYM)
+        {
+            fprintf(stderr,"for: expect a num !\n");
+            exit(1);
+        }
+        string tmp = generateVar();
+        insertIntIntoFourVarCodeTab(op,s3,yylval.ival,tmp);
+        insertStringIntoFourVarCodeTab("=",tmp,"",s2);
         
+        getSym();
+        if(symID != RPARENSYM)
+        {
+            fprintf(stderr,"for: expect ')' !\n");
+            exit(1);
+        }
+
+        getSym();
+        state();
+
+        insertStringIntoFourVarCodeTab("jmp","","",again);
+        insertStringIntoFourVarCodeTab("lab:","","",out);
     }
     else
     {
@@ -837,7 +979,7 @@ int main(int argc, char **argv)
     {
         varDeclare(symID);
     }
-    valuePara();
+    state();
     printSymTab();
     printFourVarCodeTab();
     //getsym();
