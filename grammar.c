@@ -445,7 +445,7 @@ int valuePara()
  * ＜语句＞ ::= ＜条件语句＞｜＜循环语句＞｜‘{’＜语句列＞‘}’｜＜有返回值函数调用语句＞;|＜无返回值函数调用语句＞;｜＜赋值语句＞;｜＜读语句＞;｜＜写语句＞;｜＜空＞;｜＜返回语句＞;
  * 分析：描述语句的格式，语句是条件语句或者循环语句或者｛语句列｝或者有返回值函数调用语句；或者无返回值函数调用语句；或者赋值语句；或者读语句；或者写语句；或者空；或者返回语句；
  */ 
-void states()
+void state()
 {
     if(symID == IFSYM)//＜条件语句＞
     {
@@ -466,7 +466,7 @@ void states()
          * }
          */
         getSym();
-        states();
+        state();
         if(symID != RBPARENSYM)
         {
             fprintf(stderr,"states: miss '}'!\n"); 
@@ -500,6 +500,7 @@ void states()
             }
             //a=b   =>  =,b,,a
             insertStringIntoFourVarCodeTab("=",tmp,"",symIDName);
+            getSym();
         }
         else if(symID == LPARENSYM)//＜有返回值函数调用语句＞;|＜无返回值函数调用语句＞;
         {
@@ -574,7 +575,6 @@ void states()
     {
         getSym();
     }
-    
 }
 
 
@@ -585,18 +585,103 @@ void states()
  */ 
 void ifState()
 {
+    string label1 = generateLabel();
+    string label2 = generateLabel();
+    if(symID == IFSYM)
+    {
+        getSym();
+        if(symID != LPARENSYM)// (
+        {
+            fprintf(stderr,"expect '(' !\n");
+            exit(1);
+        }
+        getSym();
+        condition(0);
+        //等于这个条件，直接往下执行，不等于这个条件跳转到else判断（label1）
+        insertStringIntoFourVarCodeTab("jne","","",label1);
+        if(symID != RPARENSYM)// )
+        {
+            fprintf(stderr,"expect ')' !\n");
+            exit(1);
+        }
+        getSym();
+        //如果满足if语句，直接执行state，state执行结束后跳过else（label2）
+        state();
+        insertStringIntoFourVarCodeTab("jmp","","",label2);
 
+        //将label1插在else前
+        insertStringIntoFourVarCodeTab("lab:","","",label1);
+        if(symID == ELSESYM)
+        {
+            getSym();
+            state();
+        }
+        //将labek插在else结束后
+        insertStringIntoFourVarCodeTab("lab:","","",label2);
+    }
 }
 
 /**
  * ＜条件＞ ::= ＜表达式＞＜关系运算符＞＜表达式＞｜＜表达式＞ //表达式为0条件为假，否则为真
  * 分析：描述条件的格式，条件为 表达式-关系运算符-表达式 或者 表达式 的格式，若表达式为0则认为假，否则认为真，注意关系运算符只含有>、>=等
  * 样例：a>b a 
- * @return 返回条件表达式存储变量位置字符串
+ * @param inFor 该条件表达式是否用于for循环
  */ 
-string condition()
+void condition(int inFor)
 {
-
+    string e1 = expression();
+    string e2;
+    if(symID == SMALLTHSYM)//<
+    {
+        getSym();
+        e2 = expression();
+        insertStringIntoFourVarCodeTab("<",e1,e2,"");
+    }
+    else if(symID == NOTBTHSYM)//<=
+    {
+        getSym();
+        e2 = expression();
+        insertStringIntoFourVarCodeTab("<=",e1,e2,"");
+    }
+    else if(symID == BIGTHSYM)//>
+    {
+        getSym();
+        e2 = expression();
+        insertStringIntoFourVarCodeTab(">",e1,e2,"");
+    }
+    else if(symID == NOTSTHSYM)//>=
+    {
+        getSym();
+        e2 = expression();
+        insertStringIntoFourVarCodeTab(">=",e1,e2,"");
+    }
+    else if(symID == EQUSYM)//==
+    {
+        getSym();
+        e2 = expression();
+        insertStringIntoFourVarCodeTab("==",e1,e2,"");
+    }
+    else if(symID == NOTESYM)//!=
+    {
+        getSym();
+        e2 = expression();
+        insertStringIntoFourVarCodeTab("!=",e1,e2,"");
+    }
+    else if(symID == RPARENSYM)//＜条件＞ ::= ＜表达式＞
+    {
+        insertStringIntoFourVarCodeTab("!=",e1,"0","");
+    }
+    else if(inFor && symID == SEMICSYM)//for‘(’＜标识符＞＝＜表达式＞;＜条件＞;＜标识符＞＝＜标识符＞(+|-)
+    {
+        insertStringIntoFourVarCodeTab("!=",e1,"0","");
+    }
+    else
+    {
+        fprintf(stderr,"condition error!\n");
+        exit(1);
+    }
+    
+    
 }
 
 /**
@@ -612,7 +697,89 @@ string condition()
  */ 
 void loopState()
 {
+    string again = generateLabel();
+    string out = generateLabel();
+    if(symID == DOSYM)
+    {
+        insertStringIntoFourVarCodeTab("lab:","","",again);//在这设置一个标签，每次返回到这个标签
+        getSym();
+        state();
+        if(symID != WHILESYM)
+        {
+            fprintf(stderr,"while: expect 'while' !\n");
+            exit(1);
+        }
 
+        getSym();
+        if(symID != LPARENSYM)
+        {
+            fprintf(stderr,"while: expect '(' !\n");
+            exit(1);
+        }
+        getSym();
+        condition(0);
+        if(symID != RPARENSYM)
+        {
+            fprintf(stderr,"while: expect ')' !\n");
+            exit(1);
+        }
+        //如果符合上述条件，跳转到again，如果不符合，跳转到out
+        insertStringIntoFourVarCodeTab("jne","","",out);
+        insertStringIntoFourVarCodeTab("jmp","","",again);
+        insertStringIntoFourVarCodeTab("lab:","","",out);
+        getSym();
+    }
+    else if(symID == FORSYM)
+    {
+        getSym();
+        if(symID != LPARENSYM)
+        {
+            fprintf(stderr,"for: expect '(' !\n");
+            exit(1);
+        }
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"for: expect id !\n");
+            exit(1);
+        }
+        string symIDName = yylval.sval;
+        if(searchSymTab(symIDName,0,0) == 0)
+        {
+            fprintf(stderr,"for: %s undefine!\n",symIDName);
+            exit(1);
+        }
+        if(getIsConst())//常量也不能赋值
+        {
+            fprintf(stderr,"for: %s is const, but want a var!\n",symIDName);
+            exit(1);
+        }
+        getSym();
+        if(symID != ASSIGNSYM)
+        {
+            fprintf(stderr,"for: expect '=' !\n");
+            exit(1);
+        }
+        getSym();
+        string e = expression();
+        insertStringIntoFourVarCodeTab("=",e,"",symIDName);
+        if(symID != SEMICSYM)
+        {
+            fprintf(stderr,"for: expect ';' !\n");
+            exit(1);
+        }
+        getSym();
+
+        insertStringIntoFourVarCodeTab("lab:","","",again);
+        condition(1);
+        //如果不等于
+        
+    }
+    else
+    {
+        fprintf(stderr,"loop error!\n");
+        exit(1);
+    }
 }
 
 

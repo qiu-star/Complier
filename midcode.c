@@ -1,7 +1,9 @@
 #include "midcode.h"
 
 FourVarCodeTab fourVarCodeTab;
+
 int varNum = 0;//自动生成的变量个数（用于返回自动生成的变量名
+int labelNum = 0;//自动生成的标签个数（用于返回自动生成的标签
 
 void initFourVarCodeTab()
 {
@@ -50,6 +52,18 @@ string generateVar()
     sprintf(var,"$_%d", varNum);
     varNum++;
     return var;
+}
+
+/**
+ * 生成一个标签名
+ * @return 返回生成的标签名
+ */ 
+string generateLabel()
+{
+    char* label = (char*)malloc(sizeof(char)*16);
+    sprintf(label,"_LABEL_%d",labelNum);
+    labelNum++;
+    return label;
 }
 
 void printFourVarCodeTab()

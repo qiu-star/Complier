@@ -28,4 +28,5 @@ void initFourVarCodeTab();
 void insertIntIntoFourVarCodeTab(char* op, char* a, int b, char* result);
 void insertStringIntoFourVarCodeTab(char* op, char* a, char* b, char* result);
 string generateVar();
+string generateLabel();
 void printFourVarCodeTab();
