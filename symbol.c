@@ -1,5 +1,20 @@
 #include "symbol.h"
 
+SymbolTable symTable;
+
+int isConst=0;
+int isArr=0;
+
+int getIsConst()
+{
+    return isConst;
+}
+
+void setIsConst(int f)
+{
+    isConst = f;
+}
+
 void initSymTab()
 {
     symTable.length = 0;
@@ -82,7 +97,7 @@ void insertSymTab(string name, int type, int value, int para, int address)
 /**
  * @param name 符号名
  * @param ifFunction 该符号是否为函数
- * @param paraNum 如果是函数，那么调用该函数的参数个数是多少；如果不是函数，该参数为是否为数组，如果是数组为1,不是数组为0
+ * @param paraNum 如果是函数，那么调用该函数的参数个数是多少；如果不是函数，该参数为是否为数组，如果是数组为1,不是数组为0,不确定为-1
  */ 
 int searchSymTab(string name, int ifFunction, int paraNum)
 {
@@ -121,7 +136,7 @@ int searchSymTab(string name, int ifFunction, int paraNum)
             }
             if(j == symTable.proIndex[1]) return 0;
             //是不是数组
-            if(paraNum && symTable.element[j].para == -1) return 0;
+            if(paraNum == 1 && symTable.element[j].para == -1) return 0;
             
             if(symTable.element[j].type == 3) return 0;//参数表
             if(symTable.element[j].type == 0)//如果是常量
@@ -138,6 +153,8 @@ int searchSymTab(string name, int ifFunction, int paraNum)
                 return symTable.element[j].address;
             }
         }
+        //是不是数组
+        if(paraNum == 1 && symTable.element[i].para == -1) return 0;
         if(symTable.element[i].type == 3) return 0;//参数表
         if(symTable.element[i].type == 0)
         {

@@ -1,5 +1,8 @@
 #include "midcode.h"
 
+FourVarCodeTab fourVarCodeTab;
+int varNum = 0;//自动生成的变量个数（用于返回自动生成的变量名
+
 void initFourVarCodeTab()
 {
     fourVarCodeTab.length=0;

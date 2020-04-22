@@ -59,7 +59,7 @@ void removeDoubleQuotation(char * text)
 "\""                    {return DQUOTESYM;}
 "="                     {return ASSIGNSYM;}
 "\""[^"]*"\""   	    {removeDoubleQuotation(yytext); yylval.sval=String(yytext); return STRINGSYM;}
-"'"[^']*"'"             {yylval.sval=String(yytext); return LETTERSYM;}
+"'"[^']*"'"             {char *t= (char*)malloc(2*sizeof(char));t[0]=yytext[1];t[1]='\0';yylval.sval=String(t); return LETTERSYM;}
 ":"                     {return COLONSYM;}
 ";"                     {return SEMICSYM;}
 [0-9]+	                {yylval.ival=atoi(yytext); return DIGSYM;}

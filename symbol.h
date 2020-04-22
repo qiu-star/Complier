@@ -25,13 +25,10 @@ typedef struct
     int proIndex[MAX];//分程序的索引（比如一个function内的程序就是分程序），增加这个元素以便于快速搜索元素
     int totalPro;//分程序的总数
 } SymbolTable;
- 
-SymbolTable symTable;
-
-int isConst=0;
-int isArr=0;
 
 void initSymTab();
 void insertSymTab(string name, int type, int value, int para, int address);
 int searchSymTab(string name, int ifFunction, int paraNum);
+int getIsConst();
+void setIsConst(int f);
 void printSymTab();
