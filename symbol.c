@@ -28,6 +28,15 @@ void initSymTab()
 }
 
 /**
+ * 给函数插入参数
+ */ 
+void insertPara(int num)
+{
+    int i = symTable.proIndex[symTable.totalPro - 1];
+    symTable.element[i].para = num;
+}
+
+/**
  * 如果符号类型是function
  */ 
 void insertSymTabFun(string name, int type, int value, int para, int address)
@@ -104,6 +113,7 @@ void insertSymTab(string name, int type, int value, int para, int address)
  * @param name 符号名
  * @param ifFunction 该符号是否为函数
  * @param paraNum 如果是函数，那么调用该函数的参数个数是多少；如果不是函数，该参数为是否为数组，如果是数组为1,不是数组为0,不确定为-1
+ * @return 函数找到了返回1，常量返回常量的值，变量返回变量地址，参数表返回-1，未找到返回0
  */ 
 int searchSymTab(string name, int ifFunction, int paraNum)
 {
@@ -147,7 +157,7 @@ int searchSymTab(string name, int ifFunction, int paraNum)
             //是不是数组
             if(paraNum == 1 && symTable.element[j].para == -1) return 0;
             
-            if(symTable.element[j].type == 3) return 0;//参数表
+            if(symTable.element[j].type == 3) return -1;//参数表
             isConst = 0;
             isArr = 0;
             factorType = -1;
@@ -168,7 +178,7 @@ int searchSymTab(string name, int ifFunction, int paraNum)
         }
         //是不是数组
         if(paraNum == 1 && symTable.element[i].para == -1) return 0;
-        if(symTable.element[i].type == 3) return 0;//参数表
+        if(symTable.element[i].type == 3) return -1;//参数表
         isConst = 0;
         isArr = 0;
         factorType = -1;

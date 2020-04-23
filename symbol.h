@@ -33,3 +33,4 @@ int getIsConst();
 int getIsArr();
 int getFactorType();
 void printSymTab();
+void insertPara(int num);

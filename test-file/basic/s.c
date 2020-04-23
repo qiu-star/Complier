@@ -3,6 +3,8 @@ int c, d;
 int f[10];
 int i;
 char m;
+int g;
+g=32;
 if(a == b)
 {
     c = 1;
@@ -26,4 +28,10 @@ else
 	c = c + 1;
 	d = c;
     }
+}
+
+int cmp(int a, int b)
+{
+    if(a > b) return (1);
+    else return (0);
 }

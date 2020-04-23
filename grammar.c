@@ -4,6 +4,8 @@ extern YYSTYPE yylval;
 extern int symID;
 
 int address;
+int hasRet = 0;
+int isMain = 0;//是否main函数
 
 void initLex(char *fname);
 void getSym();
@@ -146,13 +148,14 @@ void varDefine(int type)
                 }
                 else if(symID != COMMASYM)//不为','
                 {
-                    fprintf(stderr,"var defination: symbol miss error!\n"); 
-                    exit(1);
+                    //fprintf(stderr,"var defination: symbol miss error %d!\n",symID); 
+                    //exit(1);
+                    return;
                 }
             }
             else
             {
-                fprintf(stderr,"var defination: id miss error!\n"); 
+                fprintf(stderr,"var defination: id miss error! %d\n",yylval.ival); 
                 exit(1);
             }     
         } while (1);
@@ -166,12 +169,12 @@ void varDefine(int type)
  */
 void varDeclare(int type)
 {
-    do
+    while (type == INTSYM || type == CHARSYM)
     {
         varDefine(type);
         getSym();
         type = symID;
-    }while (type == INTSYM || type == CHARSYM);
+    }
 }
 
  /**
@@ -510,7 +513,7 @@ void state()
             tmp = expression();
             if(symID != SEMICSYM)//;
             {
-                fprintf(stderr,"expect ';' !\n");
+                fprintf(stderr,"state: expect ';' !\n");
                 exit(1);
             }
             //a=b   =>  =,b,,a
@@ -540,7 +543,7 @@ void state()
             getSym();
             if (symID != SEMICSYM)//;
             {
-                fprintf(stderr,"expect ';' !\n");
+                fprintf(stderr,"state: expect ';' !\n");
                 exit(1);
             }
             getSym();
@@ -600,7 +603,7 @@ void state()
         scanfState();
         if(symID != SEMICSYM)//;
         {
-            fprintf(stderr,"expect ';' !\n");
+            fprintf(stderr,"state: expect ';' !\n");
             exit(1);
         }
         getSym();
@@ -610,7 +613,7 @@ void state()
         printState();
         if(symID != SEMICSYM)//;
         {
-            fprintf(stderr,"expect ';' !\n");
+            fprintf(stderr,"state: expect ';' !\n");
             exit(1);
         }
         getSym();
@@ -620,7 +623,7 @@ void state()
         returnState();
         if(symID != SEMICSYM)//;
         {
-            fprintf(stderr,"expect ';' !\n");
+            fprintf(stderr,"state: expect ';' !\n");
             exit(1);
         }
         getSym();
@@ -1072,8 +1075,16 @@ void returnState()
     getSym();
     if(symID == LPARENSYM)
     {
+        getSym();
         string e = expression();
         insertStringIntoFourVarCodeTab("ret","","",e);
+        if(symID != RPARENSYM)
+        {
+            fprintf(stderr,"return: expect ')'!\n"); 
+            exit(1);
+        }
+        hasRet = 1;
+        getSym();
     }
     else if(symID == SEMICSYM)
     {
@@ -1097,6 +1108,44 @@ void returnState()
  * …
  * }
  */ 
+void programme()
+{
+    if(symID == CONSTSYM)constDeclare();
+    //@TODO 变量说明这块可能有问题，因为不确定
+    //varDeclare(symID);
+    
+}
+
+/**
+ * ＜声明头部＞ ::= int＜标识符＞|char＜标识符＞
+ * 分析：定义声明头部的格式，以int或char开头的后接标识符的字符串
+ * 样例：int a char b
+ * @return 头部名称
+ */ 
+string declareHead()
+{
+    if(symID == INTSYM || symID == CHARSYM)
+    {
+        address = 0;
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"declareHead: expect 'id'!\n");
+            exit(1);
+        }
+        string symIDName = yylval.sval;
+        insertSymTab(symIDName,2,symID,0,address);//后续会通过insertPara将参数个数更新
+        if(symID == INTSYM) insertStringIntoFourVarCodeTab("func","int","",yylval.sval);
+        else if(symID == CHARSYM) insertStringIntoFourVarCodeTab("func","char","",yylval.sval);
+        getSym();
+        return symIDName;
+    }
+    else
+    {
+        fprintf(stderr,"declareHead: expect 'int'/'char'!\n");
+        exit(1);
+    }
+}
 
 /**
  * ＜有返回值函数定义＞ ::= ＜声明头部＞‘(’＜参数＞‘)’ ‘{’＜复合语句＞‘}’
@@ -1105,7 +1154,45 @@ void returnState()
  * int cmp(int a, int b){
  * …
  * }
- */ 
+ */
+void funcWithRetDefine()
+{
+    hasRet = 0;
+    string funcName = declareHead();
+    if (symID != LPARENSYM)
+    {
+        fprintf(stderr,"funcWithRetDefine: expect '(' !\n");
+        exit(1);
+    }
+    getSym();
+    paraTable();
+    if(symID != RPARENSYM)
+    {
+        fprintf(stderr,"funcWithRetDefine: expect ')' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != LBPARENSYM)
+    {
+        fprintf(stderr,"funcWithRetDefine: expect '{' !\n");
+        exit(1);
+    }
+    getSym();
+    compoundState();
+    if(symID != RBPARENSYM)
+    {
+        fprintf(stderr,"funcWithRetDefine: expect '}' !\n");
+        exit(1);
+    }
+    if(hasRet == 0)
+    {
+        fprintf(stderr,"funcWithRetDefine: expect a return value !\n");
+        exit(1);
+    }
+    getSym();
+    insertStringIntoFourVarCodeTab("end","","",funcName);
+    hasRet = 0;
+}
 
 /**
  * ＜无返回值函数定义＞ ::= void＜标识符＞‘(’＜参数＞‘)’‘{’＜复合语句＞‘}’
@@ -1115,27 +1202,86 @@ void returnState()
  * …
  * } 
  */ 
+void funcWithoutRetDefine()
+{
+
+}
 
 /**
  * ＜复合语句＞ ::= ［＜常量说明＞］［＜变量说明＞］＜语句列＞
  * 分析：描述复合语句的格式，由常量说明、变量说明、语句列组成，三者严格有序，其中常量说明，变量说明可有可无，若存在，顺序不可逆
  * 样例：
  * const int a =1 ;
- * int b = 4 ;
- */ 
+ * int b;
+ * b = 4;
+ */
+void compoundState()
+{
+    if(symID == CONSTSYM)
+    {
+        constDeclare();
+    }
+    if(symID == INTSYM || symID == CHARSYM)
+    {
+        varDeclare(symID);
+    }
+    states();
+}
 
 /**
  * ＜参数＞ ::= ＜参数表＞
- * 分析：描述参数的形式为参数表
- * 样例：无
- */ 
-
-/**
  * ＜参数表＞ ::= ＜类型标识符＞＜标识符＞{,＜类型标识符＞＜标识符＞}| ＜空＞
  * 分析：描述参数表的格式，由一个或者多个 类型标识符接标识符 的形式组成，若有多个，则中间以，分割，参数表可以为空，参数表中不能出现数组
  * 样例：
  * int a,int b, int c
  */ 
+void paraTable()
+{
+    int paramNum = 0;
+    int paratype;
+    if(symID == INTSYM || symID == CHARSYM)
+    {
+        paratype = symID;
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"paraTable: expect 'id' !\n");
+            exit(1);
+        }
+        address++;
+        insertSymTab(yylval.sval,3,paratype,paramNum+1,address);
+        if(paratype == INTSYM) insertStringIntoFourVarCodeTab("para","int","",yylval.sval);
+        else if(paratype == CHARSYM) insertStringIntoFourVarCodeTab("para","char","",yylval.sval);
+        paramNum++;
+        getSym();
+        while(symID == COMMASYM)
+        {
+            getSym();
+            if(symID == INTSYM || symID == CHARSYM)
+            {
+                paratype = symID;
+                getSym();
+                if(symID != IDSYM)
+                {
+                    fprintf(stderr,"paraTable: expect 'id' !\n");
+                    exit(1);
+                }
+                address++;
+                insertSymTab(yylval.sval,3,paratype,paramNum+1,address);
+                if(paratype == INTSYM) insertStringIntoFourVarCodeTab("para","int","",yylval.sval);
+                else if(paratype == CHARSYM) insertStringIntoFourVarCodeTab("para","char","",yylval.sval);
+                paramNum++;
+                getSym();
+            }
+            else
+            {
+                fprintf(stderr,"paraTable error!\n");
+                exit(1);
+            }
+        }
+        insertPara(paramNum);
+    }
+}
 
 /**
  * ＜主函数＞ ::= void main‘(’‘)’ ‘{’＜复合语句＞‘}’
@@ -1157,16 +1303,8 @@ int main(int argc, char **argv)
     initSymTab();
     initLex(argv[1]);
     getSym();
-    if(symID == CONSTSYM)
-    {
-        constDeclare();
-    }
-    if(symID == INTSYM || symID == CHARSYM)
-    {
-        varDeclare(symID);
-    }
-    //valuePara();
-    state();
+    compoundState();
+    funcWithRetDefine();
     printSymTab();
     printFourVarCodeTab();
     //getsym();
