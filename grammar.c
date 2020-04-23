@@ -1204,7 +1204,54 @@ void funcWithRetDefine()
  */ 
 void funcWithoutRetDefine()
 {
-
+    hasRet = 0;
+    if(symID != VOIDSYM)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: expect 'void' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != IDSYM)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: expect 'id' !\n");
+        exit(1);
+    }
+    address = 0;
+    string funcName = yylval.sval;
+    insertSymTab(funcName,2,0,0,address);
+    insertStringIntoFourVarCodeTab("func","void","",funcName);
+    getSym();
+    if(symID != LPARENSYM)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: expect '(' !\n");
+        exit(1);
+    }
+    getSym();
+    paraTable();
+    if(symID != RPARENSYM)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: expect ')' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != LBPARENSYM)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: expect '{' !\n");
+        exit(1);
+    }
+    getSym();
+    compoundState();
+    if(symID != RBPARENSYM)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: expect '}' !\n");
+        exit(1);
+    }
+    if(hasRet)
+    {
+        fprintf(stderr,"funcWithoutRetDefine: shouldn't return value !\n");
+        exit(1);
+    }
+    insertStringIntoFourVarCodeTab("end","","",funcName);
 }
 
 /**
@@ -1305,6 +1352,7 @@ int main(int argc, char **argv)
     getSym();
     compoundState();
     funcWithRetDefine();
+    funcWithoutRetDefine();
     printSymTab();
     printFourVarCodeTab();
     //getsym();

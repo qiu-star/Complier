@@ -1,4 +1,4 @@
-const, int, 1, a
+const, int, 12, a
 const, int, 2, b
 int, , , c
 int, , , d
@@ -7,16 +7,30 @@ int, , , i
 char, , , m
 int, , , g
 =, 32, , g
-==, 1, 2, 
+para, int, , c
+para, int, , d
+>, 12, 2, 
 jne, , , _LABEL_0
+ret, , , 1
+jmp, , , _LABEL_1
+lab:, , , _LABEL_0
+ret, , , 0
+lab:, , , _LABEL_1
+ret, , , 3
+end, , , cmp
+func, void, , a2
+para, int, , a
+para, int, , b
+==, a, b, 
+jne, , , _LABEL_2
 =, 1, , c
 =, k, , m
 scf, , int, c
 scf, , int, d
 scf, , int, i
 prtf, abc, , char
-prtf, hello %d!, 1, char
-+, 1, 2, $_0
+prtf, hello %d!, a, int
++, a, b, $_0
 *, c, d, $_1
 -, $_0, $_1, $_2
 aassi, f, 0, $_3
@@ -24,40 +38,28 @@ aassi, f, 0, $_3
 prtf, %d, $_4, int
 prtf, , c, int
 prtf, , m, char
-+, 1, 2, $_5
-+, $_5, c, $_6
-ret, , , $_6
-jmp, , , _LABEL_1
-lab:, , , _LABEL_0
+jmp, , , _LABEL_3
+lab:, , , _LABEL_2
 []=, 12, 0, f
 []=, 10, 1, f
-*, 1, 2, $_7
-+, 1, $_7, $_8
-aassi, f, $_8, $_9
-=, $_9, , d
+*, a, 2, $_5
++, 1, $_5, $_6
+aassi, f, $_6, $_7
+=, $_7, , d
 ret, , , 
 =, 0, , i
-lab:, , , _LABEL_2
-aassi, f, 0, $_10
-aassi, f, 1, $_11
-+, $_10, $_11, $_12
-<, i, $_12, 
-jne, , , _LABEL_3
-+, i, 3, $_13
-=, $_13, , i
-+, c, 1, $_14
-=, $_14, , c
-=, c, , d
-jmp, , , _LABEL_2
-lab:, , , _LABEL_3
-lab:, , , _LABEL_1
-para, int, , a
-para, int, , b
->, a, b, 
-jne, , , _LABEL_4
-ret, , , 1
-jmp, , , _LABEL_5
 lab:, , , _LABEL_4
-ret, , , 0
+aassi, f, 0, $_8
+aassi, f, 1, $_9
++, $_8, $_9, $_10
+<, i, $_10, 
+jne, , , _LABEL_5
++, i, 3, $_11
+=, $_11, , i
++, c, 1, $_12
+=, $_12, , c
+=, c, , d
+jmp, , , _LABEL_4
 lab:, , , _LABEL_5
-end, , , cmp
+lab:, , , _LABEL_3
+end, , , a2

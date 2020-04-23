@@ -142,6 +142,9 @@ int searchSymTab(string name, int ifFunction, int paraNum)
         //查找变量
         int i;
         int index = (symTable.totalPro-1);
+        isConst = 0;
+        isArr = 0;
+        factorType = -1;
         for(i = symTable.proIndex[index]; i < symTable.length; i++)
         {
             if(strcmp(name, symTable.element[i].name) == 0) break;
@@ -149,18 +152,19 @@ int searchSymTab(string name, int ifFunction, int paraNum)
         if(i == symTable.length)//在全局变量中找，也就是在程序段数为0的区域找
         {
             int j;
-            for(j = 0; i < symTable.proIndex[1]; i++)
+            for(j = 0; j < symTable.proIndex[1]; j++)
             {
-                if(strcmp(name, symTable.element[i].name)) break;
+                if(strcmp(name, symTable.element[j].name) == 0) break;
             }
             if(j == symTable.proIndex[1]) return 0;
             //是不是数组
             if(paraNum == 1 && symTable.element[j].para == -1) return 0;
             
-            if(symTable.element[j].type == 3) return -1;//参数表
-            isConst = 0;
-            isArr = 0;
-            factorType = -1;
+            if(symTable.element[j].type == 3)
+            {
+                factorType = symTable.element[j].value;
+                return -1;//参数表
+            } 
             if(symTable.element[j].type == 0)//如果是常量
             {
                 isConst = 1;
@@ -178,10 +182,11 @@ int searchSymTab(string name, int ifFunction, int paraNum)
         }
         //是不是数组
         if(paraNum == 1 && symTable.element[i].para == -1) return 0;
-        if(symTable.element[i].type == 3) return -1;//参数表
-        isConst = 0;
-        isArr = 0;
-        factorType = -1;
+        if(symTable.element[i].type == 3)
+        {
+            factorType = symTable.element[i].value;
+            return -1;//参数表
+        } 
         if(symTable.element[i].type == 0)
         {
             isConst = 1;
