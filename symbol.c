@@ -2,17 +2,23 @@
 
 SymbolTable symTable;
 
-int isConst=0;
-int isArr=0;
+int isConst = 0;
+int isArr = 0;
+int factorType = -1;
+
+int getFactorType()
+{
+    return factorType;
+}
 
 int getIsConst()
 {
     return isConst;
 }
 
-void setIsConst(int f)
+int getIsArr()
 {
-    isConst = f;
+    return isArr;
 }
 
 void initSymTab()
@@ -112,6 +118,9 @@ int searchSymTab(string name, int ifFunction, int paraNum)
                 break;
             }
         }
+        isArr = 0;
+        isConst = 0;
+        factorType = -1;
         if(i == symTable.totalPro) return 0;
         //比对参数个数
         if(paraNum != symTable.element[symTable.proIndex[i]].para) return 0;
@@ -139,6 +148,9 @@ int searchSymTab(string name, int ifFunction, int paraNum)
             if(paraNum == 1 && symTable.element[j].para == -1) return 0;
             
             if(symTable.element[j].type == 3) return 0;//参数表
+            isConst = 0;
+            isArr = 0;
+            factorType = -1;
             if(symTable.element[j].type == 0)//如果是常量
             {
                 isConst = 1;
@@ -146,6 +158,7 @@ int searchSymTab(string name, int ifFunction, int paraNum)
             }
             if(symTable.element[j].type == 1)//如果是变量
             {
+                factorType = symTable.element[j].value;
                 if(symTable.element[j].para != -1)
                 {
                     isArr = 1;
@@ -156,6 +169,9 @@ int searchSymTab(string name, int ifFunction, int paraNum)
         //是不是数组
         if(paraNum == 1 && symTable.element[i].para == -1) return 0;
         if(symTable.element[i].type == 3) return 0;//参数表
+        isConst = 0;
+        isArr = 0;
+        factorType = -1;
         if(symTable.element[i].type == 0)
         {
             isConst = 1;
@@ -163,6 +179,7 @@ int searchSymTab(string name, int ifFunction, int paraNum)
         }
         if(symTable.element[i].type == 1)
         {
+            factorType = symTable.element[i].value;
             if(symTable.element[i].para != -1)
             {
                 isArr = 1;

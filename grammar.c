@@ -248,7 +248,6 @@ string factor()
             }
             if(getIsConst())
             {
-                setIsConst(0);
                 return itoa(t);//直接将const值返回
             }
             return symIDName;
@@ -293,7 +292,7 @@ string factor()
     }
     else
     {
-        fprintf(stderr,"factor error!\n"); 
+        fprintf(stderr,"factor error !\n"); 
         exit(1);
     }
     return NULL;
@@ -504,7 +503,6 @@ void state()
             } 
             if(getIsConst())//常量不能赋值
             {
-                setIsConst(0);
                 fprintf(stderr,"for: %s is const, but want a var!\n",symIDName);
                 exit(1);
             }
@@ -575,7 +573,6 @@ void state()
                 } 
                 if(getIsConst())//常量不能赋值
                 {
-                    setIsConst(0);
                     fprintf(stderr,"for: %s is const, but want a var!\n",symIDName);
                     exit(1);
                 }
@@ -808,7 +805,6 @@ void loopState()
         }
         if(getIsConst())//常量也不能赋值
         {
-            setIsConst(0);
             fprintf(stderr,"for: %s is const, but want a var!\n",s1);
             exit(1);
         }
@@ -851,7 +847,6 @@ void loopState()
         }
         if(getIsConst())//常量也不能赋值
         {
-            setIsConst(0);
             fprintf(stderr,"for: %s is const, but want a var!\n",s2);
             exit(1);
         }
@@ -876,7 +871,6 @@ void loopState()
         if(getIsConst())//常量也不能赋值
         {
             fprintf(stderr,"for: %s is const, but want a var!\n",s3);
-            setIsConst(0);
             exit(1);
         }
         getSym();
@@ -932,7 +926,66 @@ void loopState()
  */ 
 void scanfState()
 {
+    if(symID != SCANFSYM)
+    {
+        fprintf(stderr,"scanf: expect 'scanf' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != LPARENSYM)
+    {
+        fprintf(stderr,"scanf: expect '(' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != IDSYM)
+    {
+        fprintf(stderr,"scanf: expect a id!\n");
+        exit(1);
+    }
+    if(searchSymTab(yylval.sval,0,0) == 0)
+    {
+        fprintf(stderr,"scanf: '%s' isn't a var/ undefine !\n",yylval.sval);
+        exit(1);
+    }
+    if(getIsArr())
+    {
+        fprintf(stderr,"scanf: '%s' is a array !\n",yylval.sval);
+        exit(1);
+    }
 
+    //scanf(a); =>  scf,,a的type:char/int,a
+    string type = (getFactorType() == INTSYM)?"int":"char";
+    insertStringIntoFourVarCodeTab("scf","",type,yylval.sval);
+    getSym();
+    while(symID == COMMASYM)
+    {
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"scanf: expect a id!\n");
+            exit(1);
+        }
+        if(searchSymTab(yylval.sval,0,0) == 0)
+        {
+            fprintf(stderr,"scanf: '%s' isn't a var/ undefine !\n",yylval.sval);
+            exit(1);
+        }
+        if(getIsArr())
+        {
+            fprintf(stderr,"scanf: '%s' is a array !\n",yylval.sval);
+            exit(1);
+        }
+        type = (getFactorType() == INTSYM)?"int":"char";
+        insertStringIntoFourVarCodeTab("scf","",type,yylval.sval);
+        getSym();
+    }
+    if(symID != RPARENSYM)
+    {
+        fprintf(stderr,"scanf: expect ')' !\n");
+        exit(1);
+    }
+    getSym();
 }
 
 /**
@@ -945,7 +998,61 @@ void scanfState()
  */ 
 void printState()
 {
-
+    if(symID != PRINTFSYM)
+    {
+        fprintf(stderr,"printf: expect 'printf' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != LPARENSYM)
+    {
+        fprintf(stderr,"printf: expect '(' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID == STRINGSYM)
+    {
+        string t = yylval.sval;
+        getSym();
+        if(symID == RPARENSYM)
+        {
+            //printf ‘(’＜字符串＞‘)’
+            insertStringIntoFourVarCodeTab("prtf",t,"","char");
+            getSym();
+        }
+        else if(symID == COMMASYM)
+        {
+            getSym();
+            string e = expression();
+            //这个地方可能有问题
+            string type = (getFactorType() == INTSYM)?"int":"char";
+            insertStringIntoFourVarCodeTab("prtf",t,e,type);
+            if(symID != RPARENSYM)
+            {
+                fprintf(stderr,"printf: expect ')' !\n");
+                exit(1);
+            }
+            getSym();
+        }
+        else
+        {
+            fprintf(stderr,"printf: error !\n");
+            exit(1);
+        }
+    }
+    else
+    {
+        string e = expression();
+        if(symID != RPARENSYM)
+        {
+            fprintf(stderr,"printf: expect ')' !\n");
+            exit(1);
+        }
+        string type = (getFactorType() == INTSYM)?"int":"char";
+        insertStringIntoFourVarCodeTab("prtf","",e,type);
+        getSym();
+    }
+    
 }
 
 /**
@@ -953,12 +1060,91 @@ void printState()
  * 分析：描述返回语句的格式，return或者return（表达式）
  * 样例：
  * return
- * return a 
+ * return (a) 
  */ 
 void returnState()
 {
-
+    if(symID != RETURNSYM)
+    {
+        fprintf(stderr,"return: expect 'return'!\n"); 
+        exit(1);
+    }
+    getSym();
+    if(symID == LPARENSYM)
+    {
+        string e = expression();
+        insertStringIntoFourVarCodeTab("ret","","",e);
+    }
+    else if(symID == SEMICSYM)
+    {
+        insertStringIntoFourVarCodeTab("ret","","","");
+    }
 }
+
+/**
+ * ＜程序＞ ::= ［＜常量说明＞］［＜变量说明＞］{＜有返回值函数定义＞|＜无返回值函数定义＞}＜主函数＞
+ * 分析：程序定义为严格顺序的 常量说明-字符串说明-有返回值函数定义-无返回值函数定义-主函数 的字符串组合，其中常量说明和变量说明可以没有，如果有，只能出现一次（即不存在多个常量或者变量说明语句），有返回值函数定义和无返回值函数定义可以有若干个，以主程序结尾。
+ * 样例：
+ * const int a，b，c；
+ * int q，w，e；
+ * void func1（）｛
+ * …
+ * ｝
+ * Int func2（）｛
+ * …
+ * ｝
+ * Void main(){
+ * …
+ * }
+ */ 
+
+/**
+ * ＜有返回值函数定义＞ ::= ＜声明头部＞‘(’＜参数＞‘)’ ‘{’＜复合语句＞‘}’
+ * 分析：描述有返回值函数定义的格式，包含声明头部，被（）的参数，被｛｝包裹的复合语句，三者严格有序
+ * 样例：
+ * int cmp(int a, int b){
+ * …
+ * }
+ */ 
+
+/**
+ * ＜无返回值函数定义＞ ::= void＜标识符＞‘(’＜参数＞‘)’‘{’＜复合语句＞‘}’
+ * 分析：描述无返回值函数定义的格式，以void开始，被（）包裹的参数，被｛｝包裹的复合语句，三者严格有序
+ * 样例：
+ * void cmp(int a, int b){
+ * …
+ * } 
+ */ 
+
+/**
+ * ＜复合语句＞ ::= ［＜常量说明＞］［＜变量说明＞］＜语句列＞
+ * 分析：描述复合语句的格式，由常量说明、变量说明、语句列组成，三者严格有序，其中常量说明，变量说明可有可无，若存在，顺序不可逆
+ * 样例：
+ * const int a =1 ;
+ * int b = 4 ;
+ */ 
+
+/**
+ * ＜参数＞ ::= ＜参数表＞
+ * 分析：描述参数的形式为参数表
+ * 样例：无
+ */ 
+
+/**
+ * ＜参数表＞ ::= ＜类型标识符＞＜标识符＞{,＜类型标识符＞＜标识符＞}| ＜空＞
+ * 分析：描述参数表的格式，由一个或者多个 类型标识符接标识符 的形式组成，若有多个，则中间以，分割，参数表可以为空，参数表中不能出现数组
+ * 样例：
+ * int a,int b, int c
+ */ 
+
+/**
+ * ＜主函数＞ ::= void main‘(’‘)’ ‘{’＜复合语句＞‘}’
+ * 分析：描述主函数的格式，以 void main（）开始，后接被｛｝包裹的复合语句
+ * 样例：
+ * void main(){
+ * …
+ * }
+ */ 
 
 int main(int argc, char **argv)
 {
@@ -979,6 +1165,7 @@ int main(int argc, char **argv)
     {
         varDeclare(symID);
     }
+    //valuePara();
     state();
     printSymTab();
     printFourVarCodeTab();

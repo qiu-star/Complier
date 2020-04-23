@@ -3,3 +3,5 @@ name:          b type:  0 value:  2 param: -1 address:  2
 name:          c type:  1 value:  1 param: -1 address:  3
 name:          d type:  1 value:  1 param: -1 address:  4
 name:          f type:  1 value:  1 param: 10 address: 14
+name:          i type:  1 value:  1 param: -1 address: 15
+name:          m type:  1 value:  2 param: -1 address: 16

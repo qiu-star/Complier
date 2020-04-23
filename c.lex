@@ -62,7 +62,7 @@ void removeDoubleQuotation(char * text)
 "'"[^']*"'"             {char *t= (char*)malloc(2*sizeof(char));t[0]=yytext[1];t[1]='\0';yylval.sval=String(t); return LETTERSYM;}
 ":"                     {return COLONSYM;}
 ";"                     {return SEMICSYM;}
-[0-9]+	                {yylval.ival=atoi(yytext); return DIGSYM;}
+[0-9]+  	            {yylval.ival=atoi(yytext); return DIGSYM;}
 "/*".*"*/"  		    {}
 .                       {return ERROR_SYMBOL;}
 %%

@@ -3,15 +3,50 @@ const, int, 2, b
 int, , , c
 int, , , d
 inta, , 10, f
+int, , , i
+char, , , m
 ==, 1, 2, 
 jne, , , _LABEL_0
 =, 1, , c
+=, 0, , i
+=, k, , m
+scf, , int, c
+scf, , int, d
+scf, , int, i
+prtf, abc, , char
+prtf, hello %d!, 1, char
++, 1, 2, $_0
+*, c, d, $_1
+-, $_0, $_1, $_2
+aassi, f, 0, $_3
++, $_2, $_3, $_4
+prtf, %d, $_4, int
+prtf, , c, int
+prtf, , m, char
++, 1, 2, $_5
++, $_5, c, $_6
+ret, , , $_6
 jmp, , , _LABEL_1
 lab:, , , _LABEL_0
 []=, 12, 0, f
 []=, 10, 1, f
-*, 1, 2, $_0
-+, 1, $_0, $_1
-aassi, f, $_1, $_2
-=, $_2, , d
+*, 1, 2, $_7
++, 1, $_7, $_8
+aassi, f, $_8, $_9
+=, $_9, , d
+ret, , , 
+=, 0, , i
+lab:, , , _LABEL_2
+aassi, f, 0, $_10
+aassi, f, 1, $_11
++, $_10, $_11, $_12
+<, i, $_12, 
+jne, , , _LABEL_3
++, i, 3, $_13
+=, $_13, , i
++, c, 1, $_14
+=, $_14, , c
+=, c, , d
+jmp, , , _LABEL_2
+lab:, , , _LABEL_3
 lab:, , , _LABEL_1

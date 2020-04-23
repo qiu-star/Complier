@@ -11,7 +11,7 @@ typedef struct
 {
     string name;//符号名字
     int type;//0-const常量 1-var变量 2-function 3-para
-    int value;//常量的值（字符也以int值存储），如果标识符是一个函数名，用1表示函数类型为int，2表示char，0为void
+    int value;//常量的值（字符也以int值存储），如果标识符是一个函数名/变量名，用1表示函数类型为int，2表示char，0为void
     int para;//函数参数个数或者数组大小
     int address;
 } Symbol;
@@ -30,5 +30,6 @@ void initSymTab();
 void insertSymTab(string name, int type, int value, int para, int address);
 int searchSymTab(string name, int ifFunction, int paraNum);
 int getIsConst();
-void setIsConst(int f);
+int getIsArr();
+int getFactorType();
 void printSymTab();
