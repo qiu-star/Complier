@@ -74,7 +74,7 @@ void insertSymTabElse(string name, int type, int value, int para, int address)
     {
         if(strcmp(symTable.element[i].name, name) == 0)
         {
-            fprintf(stderr,"const/var/para name complict!\n"); 
+            fprintf(stderr,"'%s' const/var/para name complict!\n",name); 
             exit(1);
         }
     }

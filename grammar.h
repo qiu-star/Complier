@@ -28,3 +28,4 @@ void funcWithRetDefine();
 void funcWithoutRetDefine();
 string declareHead();
 void programme();
+void mainFunc();

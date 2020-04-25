@@ -1,14 +1,5 @@
 name:          a type:  0 value: 12 param: -1 address:  1
 name:          b type:  0 value:  2 param: -1 address:  2
-name:          c type:  1 value:  1 param: -1 address:  3
-name:          d type:  1 value:  1 param: -1 address:  4
-name:          f type:  1 value:  1 param: 10 address: 14
-name:          i type:  1 value:  1 param: -1 address: 15
-name:          m type:  1 value:  2 param: -1 address: 16
-name:          g type:  1 value:  1 param: -1 address: 17
-name:        cmp type:  2 value: 14 param:  2 address:  0
+name:        cmp type:  2 value:  1 param:  2 address:  0
 name:          c type:  3 value:  1 param:  1 address:  1
 name:          d type:  3 value:  1 param:  2 address:  2
-name:         a2 type:  2 value:  0 param:  2 address:  0
-name:          a type:  3 value:  1 param:  1 address:  1
-name:          b type:  3 value:  1 param:  2 address:  2

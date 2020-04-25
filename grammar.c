@@ -155,7 +155,7 @@ void varDefine(int type)
             }
             else
             {
-                fprintf(stderr,"var defination: id miss error! %d\n",yylval.ival); 
+                fprintf(stderr,"var defination: id miss error! %d\n",symID); 
                 exit(1);
             }     
         } while (1);
@@ -1088,7 +1088,8 @@ void returnState()
     }
     else if(symID == SEMICSYM)
     {
-        insertStringIntoFourVarCodeTab("ret","","","");
+        if(isMain) insertStringIntoFourVarCodeTab("exit","","","");
+        else insertStringIntoFourVarCodeTab("ret","","","");
     }
 }
 
@@ -1111,8 +1112,106 @@ void returnState()
 void programme()
 {
     if(symID == CONSTSYM)constDeclare();
-    //@TODO 变量说明这块可能有问题，因为不确定
-    //varDeclare(symID);
+    
+    //不能直接varDeclare因为不确定是变量头还是函数头
+    int type;
+    string symIDName;
+    while(symID == INTSYM || symID == CHARSYM)
+    {
+        type = symID;
+        getSym();
+        if(symID != IDSYM)
+        {
+            fprintf(stderr,"programme: expect 'id' !\n");
+            exit(1);
+        }
+        symIDName = yylval.sval;
+        getSym();
+        if(symID == LMPARENSYM)//如果是[]说明一定是变量定义
+        {
+            getSym();
+            if(symID != DIGSYM)
+            {
+                fprintf(stderr,"var defination: index miss error!\n"); 
+                exit(1);
+            }
+            int para = yylval.ival;
+            getSym();
+            if(symID != RMPARENSYM)// ]
+            {
+                fprintf(stderr,"var defination: ']' miss error!\n"); 
+                exit(1);
+            }
+            address += para;
+            insertSymTab(symIDName, 1, type, para, address);
+            getSym();
+            if(type == INTSYM) insertIntIntoFourVarCodeTab("inta","",para,symIDName);
+            else if(type == CHARSYM) insertIntIntoFourVarCodeTab("chara","",para,symIDName);
+            if(symID == COMMASYM)
+            {
+                varDefine(type);
+            }
+            if(symID != SEMICSYM)
+            {
+                fprintf(stderr,"expect ';' !\n");
+                exit(1);
+            }
+            getSym();
+        }
+        else if(symID == COMMASYM)//如果是逗号，可以确定是变量
+        {
+            address++;
+            int para = -1;
+            insertSymTab(symIDName, 1, type, para, address);
+            if(type == INTSYM) insertStringIntoFourVarCodeTab("int","","",symIDName);
+            else if(type == CHARSYM) insertStringIntoFourVarCodeTab("char","","",symIDName);
+            varDefine(type);
+            if(symID != SEMICSYM)
+            {
+                fprintf(stderr,"expect ';' !\n");
+                exit(1);
+            }
+            getSym();
+        }
+        else if(symID == SEMICSYM)
+        {
+            address++;
+            int para = -1;
+            insertSymTab(symIDName, 1, type, para, address);
+            if(type == INTSYM) insertStringIntoFourVarCodeTab("int","","",symIDName);
+            else if(type == CHARSYM) insertStringIntoFourVarCodeTab("char","","",symIDName);
+            getSym();
+        }
+        else if(symID == LPARENSYM || symID == VOIDSYM)
+        {
+            break;
+        }
+        else
+        {
+            fprintf(stderr,"programme: error!");
+            exit(1);
+        }
+    }
+    if(symID == LPARENSYM)//‘(’说明是函数
+    {
+        address = 0;
+        insertSymTab(symIDName,2,type,0,address);//后续会通过insertPara将参数个数更新
+        if(type == INTSYM) insertStringIntoFourVarCodeTab("func","int","",yylval.sval);
+        else if(type == CHARSYM) insertStringIntoFourVarCodeTab("func","char","",yylval.sval);
+        funcWithRetDefine(0,symIDName);
+    }
+    while(symID == INTSYM || symID == CHARSYM || symID == VOIDSYM)
+    {
+        if(symID == INTSYM || symID == CHARSYM)
+        {
+            funcWithRetDefine(1,NULL);
+        }
+        else if(symID == VOIDSYM)
+        {
+            funcWithoutRetDefine();
+        }
+        if(isMain)break;
+    }
     
 }
 
@@ -1124,8 +1223,10 @@ void programme()
  */ 
 string declareHead()
 {
+    int type;
     if(symID == INTSYM || symID == CHARSYM)
     {
+        type = symID;
         address = 0;
         getSym();
         if(symID != IDSYM)
@@ -1134,9 +1235,9 @@ string declareHead()
             exit(1);
         }
         string symIDName = yylval.sval;
-        insertSymTab(symIDName,2,symID,0,address);//后续会通过insertPara将参数个数更新
-        if(symID == INTSYM) insertStringIntoFourVarCodeTab("func","int","",yylval.sval);
-        else if(symID == CHARSYM) insertStringIntoFourVarCodeTab("func","char","",yylval.sval);
+        insertSymTab(symIDName,2,type,0,address);//后续会通过insertPara将参数个数更新
+        if(type == INTSYM) insertStringIntoFourVarCodeTab("func","int","",yylval.sval);
+        else if(type == CHARSYM) insertStringIntoFourVarCodeTab("func","char","",yylval.sval);
         getSym();
         return symIDName;
     }
@@ -1154,11 +1255,23 @@ string declareHead()
  * int cmp(int a, int b){
  * …
  * }
+ * @param needDeclare 是否需要声明函数头
+ * @param name 如果不需要声明函数头，那么name为函数名，否则为null
  */
-void funcWithRetDefine()
+void funcWithRetDefine(int needDeclare, string name)
 {
-    hasRet = 0;
-    string funcName = declareHead();
+    string funcName;
+    if(needDeclare)
+    {
+        hasRet = 0;
+        funcName = declareHead();
+    }
+    else
+    {
+        funcName = name;
+    }
+    
+    
     if (symID != LPARENSYM)
     {
         fprintf(stderr,"funcWithRetDefine: expect '(' !\n");
@@ -1211,6 +1324,16 @@ void funcWithoutRetDefine()
         exit(1);
     }
     getSym();
+    if(symID == MAINSYM)
+    {
+        if(isMain)//说明之前有main
+        {
+            fprintf(stderr,"must have only one main func!\n");
+            exit(1);
+        }
+        mainFunc();
+        return;
+    }
     if(symID != IDSYM)
     {
         fprintf(stderr,"funcWithoutRetDefine: expect 'id' !\n");
@@ -1251,6 +1374,7 @@ void funcWithoutRetDefine()
         fprintf(stderr,"funcWithoutRetDefine: shouldn't return value !\n");
         exit(1);
     }
+    getSym();
     insertStringIntoFourVarCodeTab("end","","",funcName);
 }
 
@@ -1338,6 +1462,34 @@ void paraTable()
  * …
  * }
  */ 
+void mainFunc()
+{
+    address = 0;
+    insertSymTab("main",2,0,address,0);
+    insertStringIntoFourVarCodeTab("func","","","main");
+    isMain = 1;
+    getSym();
+    if(symID != LPARENSYM)
+    {
+        fprintf(stderr,"main: need a '(' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != RPARENSYM)
+    {
+        fprintf(stderr,"main: need a ')' !\n");
+        exit(1);
+    }
+    getSym();
+    if(symID != LBPARENSYM)
+    {
+        fprintf(stderr,"main: need a '{' !\n");
+        exit(1);
+    }
+    compoundState();
+    insertStringIntoFourVarCodeTab("end","","","main");
+}
+
 
 int main(int argc, char **argv)
 {
@@ -1350,9 +1502,7 @@ int main(int argc, char **argv)
     initSymTab();
     initLex(argv[1]);
     getSym();
-    compoundState();
-    funcWithRetDefine();
-    funcWithoutRetDefine();
+    programme();
     printSymTab();
     printFourVarCodeTab();
     //getsym();
