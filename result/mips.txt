@@ -1,0 +1,6 @@
+.data
+change:	.space	40
+$string0:	.asciiz	"false"
+.text
+.globl main
+		j	main

@@ -1489,23 +1489,3 @@ void mainFunc()
     compoundState();
     insertStringIntoFourVarCodeTab("end","","","main");
 }
-
-
-int main(int argc, char **argv)
-{
-    if (argc != 2)
-    {
-        fprintf(stderr,"usage: a.out filename\n"); 
-        exit(1);
-    }
-    initFourVarCodeTab();
-    initSymTab();
-    initLex(argv[1]);
-    getSym();
-    programme();
-    printSymTab();
-    printFourVarCodeTab();
-    //getsym();
-    //printf("%d\n",symID);
-    return 0;
-}

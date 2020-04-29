@@ -1,5 +1,5 @@
-lextest: grammar.o lexical_analysis.o symbol.o midcode.o lex.yy.o util.o
-	cc -g -o grammartest grammar.o lexical_analysis.o symbol.o midcode.o lex.yy.o util.o
+lextest: grammar.o lexical_analysis.o symbol.o midcode.o asm.o lex.yy.o util.o
+	cc -g -o mipstest grammar.o lexical_analysis.o symbol.o midcode.o asm.o lex.yy.o util.o
 
 symbol.o: symbol.c symbol.h util.h
 	cc -g -c symbol.c
@@ -22,5 +22,8 @@ util.o: util.c util.h
 grammar.o: grammar.c grammar.h tokens.h util.h
 	cc -g -c grammar.c
 
+asm.o: asm.c asm.h
+	cc -g -c asm.c
+
 clean: 
-	rm -f a.out util.o lexical_analysis.o lex.yy.o lex.yy.c grammar.o grammartest symbol.o midcode.o
+	rm -f a.out util.o lexical_analysis.o lex.yy.o lex.yy.c grammar.o mipstest symbol.o midcode.o asm.o

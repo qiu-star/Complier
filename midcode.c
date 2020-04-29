@@ -66,6 +66,14 @@ string generateLabel()
     return label;
 }
 
+/**
+ * @return 返回之前生成的四元式
+ */ 
+FourVarCodeTab getMidCode()
+{
+    return fourVarCodeTab;
+}
+
 void printFourVarCodeTab()
 {
     FILE *f = fopen("result/midCode.txt","w");

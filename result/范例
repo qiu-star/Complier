@@ -1,0 +1,125 @@
+.data
+change:	.space	40
+string0:	.asciiz	""
+string1:	.asciiz	"false"
+.text
+.global main
+		j	main
+main:
+		subi	$sp	$sp	4
+		move	$fp	$sp
+		subi	$sp	$sp	8
+		li	$t1	0
+		li	$t2	1
+		subi	$sp	$sp	4
+		add	$t3	$t1	$t2
+		li	$t4	1
+		mul	$t5	$t3	4
+		la	$t0	change
+		add	$t0	$t0	$t5
+		sw	$t4	($t0)
+		li	$t7	1
+		li	$t8	2
+		subi	$sp	$sp	4
+		add	$t9	$t7	$t8
+		li	$t1	2
+		mul	$t2	$t9	4
+		sw	$t3	-8($fp)
+		la	$t0	change
+		add	$t0	$t0	$t2
+		sw	$t1	($t0)
+		li	$t4	2
+		li	$t5	3
+		subi	$sp	$sp	4
+		add	$t6	$t4	$t5
+		li	$t7	1
+		li	$t8	0
+		subi	$sp	$sp	4
+		sw	$t9	-12($fp)
+		add	$t9	$t7	$t8
+		mul	$t1	$t9	4
+		la	$t0	change
+		add	$t0	$t0	$t1
+		lw	$t2	($t0)
+		subi	$sp	$sp	4
+		sw	$t2	-24($fp)
+		li	$t3	1
+		li	$t4	1
+		subi	$sp	$sp	4
+		add	$t5	$t3	$t4
+		sw	$t6	-16($fp)
+		li	$t6	1
+		subi	$sp	$sp	4
+		add	$t7	$t6	$t5
+		mul	$t8	$t7	4
+		sw	$t9	-20($fp)
+		la	$t0	change
+		add	$t0	$t0	$t8
+		lw	$t9	($t0)
+		subi	$sp	$sp	4
+		sw	$t9	-36($fp)
+		lw	$t1	-24($fp)
+		lw	$t2	-36($fp)
+		subi	$sp	$sp	4
+		add	$t3	$t1	$t2
+		sw	$t5	-28($fp)
+		lw	$t5	-16($fp)
+		mul	$t4	$t5	4
+		la	$t0	change
+		add	$t0	$t0	$t4
+		sw	$t3	($t0)
+		sw	$t7	-32($fp)
+		li	$t7	4
+		la	$t0	change
+		add	$t0	$t0	$t7
+		lw	$t8	($t0)
+		subi	$sp	$sp	4
+		sw	$t8	-44($fp)
+		li	$t9	1
+		sw	$t1	-24($fp)
+		li	$t1	2
+		subi	$sp	$sp	4
+		sw	$t2	-36($fp)
+		add	$t2	$t9	$t1
+		sw	$t3	-40($fp)
+		mul	$t3	$t2	4
+		la	$t0	change
+		add	$t0	$t0	$t3
+		lw	$t4	($t0)
+		subi	$sp	$sp	4
+		sw	$t4	-52($fp)
+		sw	$t5	-16($fp)
+		lw	$t5	-44($fp)
+		lw	$t6	-52($fp)
+		bge	$t5	$t6	LABEL_0
+		li	$t7	20
+		la	$t0	change
+		add	$t0	$t0	$t7
+		lw	$t8	($t0)
+		subi	$sp	$sp	4
+		sw	$t8	-56($fp)
+		la	$t0	string0
+		move	$a0	$t0
+		li	$v0	4
+		syscall
+		lw	$a0	-56($fp)
+		li	$v0	1
+		syscall
+		j	LABEL_1
+LABEL_0:
+		li	$t9	20
+		la	$t0	change
+		add	$t0	$t0	$t9
+		lw	$t1	($t0)
+		subi	$sp	$sp	4
+		sw	$t1	-60($fp)
+		la	$t0	string1
+		move	$a0	$t0
+		li	$v0	4
+		syscall
+		lw	$a0	-60($fp)
+		li	$v0	1
+		syscall
+LABEL_1:
+		li	$v0	10
+		syscall
