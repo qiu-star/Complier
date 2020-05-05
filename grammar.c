@@ -428,6 +428,7 @@ int valuePara()
    {
        t = expression();
        insertStringIntoFourVarCodeTab("cpara","","",t);//值参数 callparam
+       paraNum++;
    }
    while(symID == COMMASYM)//','
    {

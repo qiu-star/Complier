@@ -1,10 +1,5 @@
 #include "grammar.h"
 
-void asmGlobalData();
-void asmGlobalConstDefine();
-void asmGlobalVarDefine();
-void asmPrintStringDefine();
-
 //全局变量/常量的数据结构
 typedef struct Global
 {
@@ -31,4 +26,9 @@ typedef struct LocalTab
     int len;
 }LocalTab;
 
-//过程记录
+void asmGlobalData();
+void asmGlobalConstDefine();
+void asmGlobalVarDefine();
+void asmPrintStringDefine();
+void asmFunc();
+void asmParam();

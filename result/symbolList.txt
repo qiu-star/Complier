@@ -1,2 +1,5 @@
 name:     change type:  1 value:  1 param: 10 address: 10
+name:        cmp type:  2 value:  1 param:  2 address:  0
+name:          a type:  3 value:  1 param:  1 address:  1
+name:          b type:  3 value:  1 param:  2 address:  2
 name:       main type:  2 value:  0 param:  0 address:  0
