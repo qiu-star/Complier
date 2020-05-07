@@ -10,16 +10,19 @@ $string4:	.asciiz	"\n"
 		j	main
 quicksort:
 		subi	$sp	$sp	4
+
 		move	$t0	$a0
 		sw	$t0	-8($fp)
 		subi	$sp	$sp	4
 		move	$t0	$a1
 		sw	$t0	-12($fp)
 		subi	$sp	$sp	4
+
 		subi	$sp	$sp	4
 		subi	$sp	$sp	4
 		subi	$sp	$sp	4
 		subi	$sp	$sp	4
+
 		lw	$t0	-8($fp)
 		sw	$t0	-16($fp)
 		lw	$t0	-12($fp)

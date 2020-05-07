@@ -2,7 +2,18 @@ inta, , 10, change
 func, int, , cmp
 para, int, , a
 para, int, , b
-+, a, b, $_0
+chara, , 12, tmp
+int, , , c
+int, , , d
+>, a, b, 
+jne, , , _LABEL_0
+=, b, , a
+jmp, , , _LABEL_1
+lab:, , , _LABEL_0
+=, 0, , a
+lab:, , , _LABEL_1
+=, a, , c
++, c, b, $_0
 ret, , , $_0
 end, , , cmp
 func, , , main
@@ -25,12 +36,12 @@ aassi, change, 1, $_10
 +, 1, 2, $_11
 aassi, change, $_11, $_12
 <, $_10, $_12, 
-jne, , , _LABEL_0
+jne, , , _LABEL_2
 aassi, change, 5, $_13
 prtf, , $_13, int
-jmp, , , _LABEL_1
-lab:, , , _LABEL_0
+jmp, , , _LABEL_3
+lab:, , , _LABEL_2
 aassi, change, 5, $_14
 prtf, false, $_14, int
-lab:, , , _LABEL_1
+lab:, , , _LABEL_3
 end, , , main

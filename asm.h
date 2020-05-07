@@ -26,9 +26,21 @@ typedef struct LocalTab
     int len;
 }LocalTab;
 
+void insertAddr(char *name);
+void insertArryAddr(char *name, int space);
+int findInGlobalTab(char *name);
+int isNum(char *str);
+
+void asmStates();
+void asmCompoundState();
+void asmBt();
+void asmSt();
+void asmJumpToLable();
 void asmGlobalData();
 void asmGlobalConstDefine();
 void asmGlobalVarDefine();
 void asmPrintStringDefine();
 void asmFunc();
 void asmParam();
+
+void printLocalVarTable();

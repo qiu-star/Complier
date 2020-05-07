@@ -21,9 +21,11 @@ move:
 		move	$t0	$a3
 		sw	$t0	-20($fp)
 		subi	$sp	$sp	4
+
 		lw	$t0	-8($fp)
 		li	$t1	1
 		bne	$t0	$t1	_LABLE_1
+
 		lw	$a0	-12($fp)
 		li	$v0	11
 		syscall

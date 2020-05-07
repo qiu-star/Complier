@@ -1,7 +1,13 @@
 int change[10];
 int cmp(int a, int b)
 {
-    return (a+b);
+    char tmp[12];
+    int c,d;
+    if(a>b)
+    {a = b;}
+    else a = 0;
+    c = a;
+    return (c+b);
 }
 void main(){
    cmp(1,2);
