@@ -4,7 +4,11 @@ int cmp(int a, int b)
     char tmp[12];
     int c,d;
     if(a>b)
-    {a = b;}
+    {
+	a = b + 1;
+        d = a - b;
+        c = a*2-b;
+    }
     else a = 0;
     c = a;
     return (c+b);

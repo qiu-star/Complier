@@ -257,77 +257,102 @@ void asmVarDeclare()
 }
 
 /**
- * >
+ * 加载变量到寄存器
+ * @param var 变量名
+ * @param reg 寄存器名
  */ 
-void asmBt()
+void asmLoad(string var, string reg)
 {
-    if(isNum(midcodeTab.element[pos].num_a))
+    if(var[0] == '-' || isNum(var))
     {
         //li $t0 1
-        sprintf(tmp,"\t\tli\t$t0\t%s\n",midcodeTab.element[pos].num_a);
+        sprintf(tmp,"\t\tli\t%s\t%s\n",reg,var);
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
     }
     else
     {
-        //如果num_a不是数字
-        int addr = findInLocalTab(midcodeTab.element[pos].num_a);
+         //如果var不是数字
+        int addr = findInLocalTab(var);
         //是否为局部变量
         if(addr != -1)
         {
             //addr是相对$fp来说的
-            sprintf(tmp,"\t\tlw\t$t0\t%d($fp)\n",-1*addr);
+            sprintf(tmp,"\t\tlw\t%s\t%d($fp)\n",reg,-1*addr);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         }
         //否则是否为全局变量（优先使用局部变量）
-        else if(findInGlobalTab(midcodeTab.element[pos].num_a))
+        else if(findInGlobalTab(var))
         {
             //la $t0 GLOBAL
             //lw $t0 ($t0)
-            sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].num_a);
+            sprintf(tmp,"\t\tla\t%s\t%s\n",reg,var);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-            sprintf(tmp,"\t\tlw\t$t0\t($t0)\n");
+            sprintf(tmp,"\t\tlw\t%s\t(%s)\n",reg,reg);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         }
         else
         {
-            fprintf(stderr,"> : '%s\n' don't exist!\n",midcodeTab.element[pos].num_a);
+            fprintf(stderr,"mips load: '%s\n' don't exist!\n",var);
             exit(1);
         }
     }
     
-    if(isNum(midcodeTab.element[pos].num_b))
+}
+
+/**
+ * 将寄存器的值存储到变量
+ * @param reg 寄存器名
+ * @param var 变量名
+ */ 
+void asmStore(string reg, string var)
+{
+    int addr;
+    //首先这个变量是否为中间变量
+    if(var[0] == '$')
     {
-        //li $t1 1
-        sprintf(tmp,"\t\tli\t$t1\t%s\n",midcodeTab.element[pos].num_b);
+        //在栈中为这个中间变量开辟空间
+        insertAddr(var);
+        //得到中间变量地址
+        addr = findInLocalTab(var);
+        //sw $t0 offset($fp)
+        sprintf(tmp,"\t\tsw\t%s\t%d($fp)\n",reg,-1*addr);
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
     }
     else
     {
-        //如果num_b不是数字
-        int addr = findInLocalTab(midcodeTab.element[pos].num_b);
-        //是否为局部变量
+        //先看这个变量是否为局部
+        addr = findInLocalTab(var);
         if(addr != -1)
         {
-            //addr是相对$fp来说的
-            sprintf(tmp,"\t\tlw\t$t1\t%d($fp)\n",-1*addr);
+            //sw $t0 offset($fp)
+            sprintf(tmp,"\t\tsw\t%s\t%d($fp)\n",reg,-1*addr);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         }
-        //否则是否为全局变量（优先使用局部变量）
-        else if(findInGlobalTab(midcodeTab.element[pos].num_b))
+        else if(findInGlobalTab(var))//否则再看这个变量是否为全局
         {
-            //la $t0 GLOBAL
-            //lw $t0 ($t0)
-            sprintf(tmp,"\t\tla\t$t1\t%s\n",midcodeTab.element[pos].num_b);
+            //la $t1 LABEL
+            sprintf(tmp,"\t\tla\t$t1\t%s\n",var);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-            sprintf(tmp,"\t\tlw\t$t1\t($t1)\n");
+            //sw $t0 ($t1)
+            sprintf(tmp,"\t\tsw\t%s\t($t1)\n",reg);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         }
         else
         {
-            fprintf(stderr,"> : '%s\n' don't exist!\n",midcodeTab.element[pos].num_a);
+            fprintf(stderr,"mips store: '%s\n' don't exist!\n",var);
             exit(1);
         }
     }
+    
+}
+
+/**
+ * >
+ */ 
+void asmBt()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
     
     //ble r, s, tag 	r <= s -> tag
     //也就是说不符合r > s这个条件就会跳转到tag
@@ -341,7 +366,71 @@ void asmBt()
  */
 void asmSt()
 {
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    
+    //bge r, s, tag 	r >= s -> tag
+    //也就是说不符合r > s这个条件就会跳转到tag
+    sprintf(tmp,"\t\tbge\t$t0\t$t1\t");//tag等到jne这个命令的时候写
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
 
+/**
+ * <=
+ */ 
+void asmNbt()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    
+    //bgt r, s, tag 	r > s -> tag
+    //也就是说不符合r > s这个条件就会跳转到tag
+    sprintf(tmp,"\t\tbgt\t$t0\t$t1\t");//tag等到jne这个命令的时候写
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
+
+/**
+ * >=
+ */ 
+void asmNst()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    
+    //blt r, s, tag 	r < s -> tag
+    //也就是说不符合r < s这个条件就会跳转到tag
+    sprintf(tmp,"\t\tblt\t$t0\t$t1\t");//tag等到jne这个命令的时候写
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
+
+/**
+ * ==
+ */ 
+void asmEq()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    
+    //bne r, s, tag 	r != s -> tag
+    //也就是说不符合r != s这个条件就会跳转到tag
+    sprintf(tmp,"\t\tbne\t$t0\t$t1\t");//tag等到jne这个命令的时候写
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
+
+void asmNeq()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    
+    //beq r, s, tag 	r = s -> tag
+    //也就是说不符合r == s这个条件就会跳转到tag
+    sprintf(tmp,"\t\tbeq\t$t0\t$t1\t");//tag等到jne这个命令的时候写
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
 }
 
 /**
@@ -354,59 +443,6 @@ void asmJumpToLable()
     pos++;
 }
 
-/**
- * 语句列
- */ 
-void asmStates()
-{
-    //函数没结束
-    while(strcmp(midcodeTab.element[pos].op,"end") != 0)
-    {
-        /*if语句判断条件*/
-        if(strcmp(midcodeTab.element[pos].op,">") == 0)
-        {
-            asmBt();
-        }
-        else if(strcmp(midcodeTab.element[pos].op,">=") == 0)
-        {
-            
-        }
-        else if(strcmp(midcodeTab.element[pos].op,"<") == 0)
-        {
-            asmStates();
-        }
-        else if(strcmp(midcodeTab.element[pos].op,"<=") == 0)
-        {
-            
-        }
-        else if(strcmp(midcodeTab.element[pos].op,"==") == 0)
-        {
-            
-        }
-        else if(strcmp(midcodeTab.element[pos].op,"!=") == 0)
-        {
-            
-        }
-        else if(strcmp(midcodeTab.element[pos].op,"jne") == 0)
-        {
-            asmJumpToLable();
-            break;
-        }
-    }
-}
-
-/**
- * 复合语句
- */ 
-void asmCompoundState()
-{
-    /*全局变量声明*/
-    asmConstDeclare();
-    /*局部变量声明*/
-    asmVarDeclare();
-    /*语句列*/
-    asmStates();
-}
 
 /**
  * 将函数转换为mips
@@ -439,15 +475,6 @@ void asmFunc()
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
     offset += 4;
     pos++;
-    /*调用参数，默认参数个数小于等于4   */
-    asmParam();
-    
-    /*复合语句*/
-    asmCompoundState();
-
-    /*恢复现场*/
-
-    printLocalVarTable();
 }
 
 void asmPrintStringDefine()
@@ -476,6 +503,197 @@ void asmPrintStringDefine()
     }
 }
 
+/**
+ * +
+ */ 
+void asmAdd()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+
+    //add $t0 $t0 $t1
+    sprintf(tmp,"\t\tadd\t$t0\t$t0\t$t1\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    //sw $t0 offset($fp) or 全局变量情况
+    asmStore("$t0",midcodeTab.element[pos].rst);
+    pos++;
+}
+
+/**
+ * -
+ */ 
+void asmSub()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+
+    //sub $t0 $t0 $t1
+    sprintf(tmp,"\t\tsub\t$t0\t$t0\t$t1\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    //sw $t0 offset($fp) or 全局变量情况
+    asmStore("$t0",midcodeTab.element[pos].rst);
+    pos++;
+}
+
+/**
+ * *
+ */ 
+void asmMul()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+
+    //mul $t0 $t0 $t1
+    sprintf(tmp,"\t\tmul\t$t0\t$t0\t$t1\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    //sw $t0 offset($fp) or 全局变量情况
+    asmStore("$t0",midcodeTab.element[pos].rst);
+    pos++;
+}
+
+/**
+ * /
+ */ 
+void asmDiv()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+
+    //div $t0 $t0 $t1
+    sprintf(tmp,"\t\tdiv\t$t0\t$t0\t$t1\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    //sw $t0 offset($fp) or 全局变量情况
+    asmStore("$t0",midcodeTab.element[pos].rst);
+    pos++;
+}
+
+/**
+ * =
+ */ 
+void asmAssign()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    asmStore("$t0",midcodeTab.element[pos].rst);
+    pos++;
+}
+
+/**
+ * jmp
+ */ 
+void asmJmp()
+{
+    sprintf(tmp,"\t\tj\t%s\n",midcodeTab.element[pos].rst);
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
+
+/**
+ * lab:
+ */ 
+void asmLabel()
+{
+    sprintf(tmp,"%s:\n",midcodeTab.element[pos].rst);
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
+
+void asmRun()
+{
+    midcodeTab = getMidCode();
+    //程序设定：先定义全局变量、然后是程序
+    mipsf = fopen("result/mips.txt","w");
+    asmGlobalData();
+    
+    while(pos < midcodeTab.length)
+    {
+        if(strcmp(midcodeTab.element[pos].op,"func") == 0)//如果是函数func, , , main
+        {
+            asmFunc();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"para") == 0)//para, int, , a
+        {
+            /*调用参数，默认参数个数小于等于4   */
+            asmParam();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"inta") == 0 || 
+            strcmp(midcodeTab.element[pos].op,"chara") == 0 ||
+            strcmp(midcodeTab.element[pos].op,"char") == 0 ||
+            strcmp(midcodeTab.element[pos].op,"int") == 0)
+        {
+            asmVarDeclare();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,">") == 0)
+        {
+            asmBt();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,">=") == 0)
+        {
+            asmNst();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"<") == 0)
+        {
+            asmSt();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"<=") == 0)
+        {
+            asmNbt();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"==") == 0)
+        {
+            asmEq();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"!=") == 0)
+        {
+            asmNeq();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"jne") == 0)
+        {
+            asmJumpToLable();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"+") == 0)
+        {
+            asmAdd();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"-") == 0)
+        {
+            asmSub();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"*") == 0)
+        {
+            asmMul();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"/") == 0)
+        {
+            asmDiv();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"=") == 0)
+        {
+            asmAssign();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"jmp") == 0)
+        {
+            asmJmp();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"lab:") == 0)
+        {
+            asmLabel();
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"ret") == 0)
+        {
+
+            break;
+        }
+        
+    }
+
+    printGlobalTable();
+    printLocalVarTable();
+}
+
 void printGlobalTable()
 {
     printf("------------------global table------------------\n");
@@ -492,24 +710,6 @@ void printLocalVarTable()
     {
         printf("name: %s\t\taddr: %d\n",localTab.l[i].name,localTab.l[i].addr);
     }
-}
-
-void asmRun()
-{
-    midcodeTab = getMidCode();
-    //程序设定：先定义全局变量、然后是程序
-    mipsf = fopen("result/mips.txt","w");
-    asmGlobalData();
-    asmFunc();
-    // while(pos < midcodeTab.length)
-    // {
-    //     if(strcmp(midcodeTab.element[pos].op,"func") == 0)//如果是函数func, , , main
-    //     {
-
-    //     }
-    // }
-
-    printGlobalTable();
 }
 
 int main(int argc, char **argv)
