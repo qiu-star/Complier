@@ -443,17 +443,11 @@ void asmJumpToLable()
     pos++;
 }
 
-
 /**
- * 将函数转换为mips
+ * 调用函数
  */ 
-void asmFunc()
+void asmCall()
 {
-    char tmp[512];
-    //函数名
-    sprintf(tmp,"%s:\n",midcodeTab.element[pos].rst);
-    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-
     /*保存现场*/
     //将原$fp压栈
     sprintf(tmp,"\t\tsw\t$fp\t($sp)\n");
@@ -468,6 +462,35 @@ void asmFunc()
     offset = 4;
     //将$ra压栈，返回地址存在$ra中
     sprintf(tmp,"\t\tsw\t$ra\t($sp)\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    //call, cmp, ,  =>  jal cmp
+    sprintf(tmp,"\t\tjal\t%s\n",midcodeTab.element[pos].num_a);
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    sprintf(tmp,"\t\tnop\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    //f = cmp(1,2);对应的四元式：
+    //call, cmp, , $_5
+    //=, $_5, , f
+    if(strcmp(midcodeTab.element[pos].rst, "") != 0)
+    {
+        insertAddr(midcodeTab.element[pos].rst);
+        int addr = findInLocalTab(midcodeTab.element[pos].rst);
+        //返回值存在$v1
+        sprintf(tmp,"\t\tsw\t$v1\t%d($fp)\n",-1*addr);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    pos++;
+}
+
+/**
+ * 将函数转换为mips
+ */ 
+void asmFunc()
+{
+    char tmp[512];
+    //函数名
+    sprintf(tmp,"%s:\n",midcodeTab.element[pos].rst);
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
 
     //$sp = $sp -4,更新栈帧位置
@@ -601,6 +624,134 @@ void asmLabel()
     pos++;
 }
 
+/**
+ * printf
+ */ 
+void asmPrintf()
+{
+    //printf("false",change[5]);    =>  prtf, false, $_18, int (在globalData的时候已经把false替换为$string)
+    if(strcmp(midcodeTab.element[pos].num_a,"") != 0)
+    {
+        //加载全局变量$string地址
+        sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].num_a);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        //将全部变量地址作为函数参数传递
+        sprintf(tmp,"\t\tmov\t$a0\t$t0\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        
+        sprintf(tmp,"\t\tli\t$v0\t4\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+        //调用系统调用（打印字符串）
+        sprintf(tmp,"\t\tsyscall\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    if(strcmp(midcodeTab.element[pos].num_b,"") != 0)
+    {
+        if(isNum(midcodeTab.element[pos].num_b))
+        {
+            //li $t0 1
+            sprintf(tmp,"\t\tli\t$a0\t%s\n",midcodeTab.element[pos].num_b);
+            fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        }
+        else
+        {
+            //如果var不是数字
+            int addr = findInLocalTab(midcodeTab.element[pos].num_b);
+            //是否为局部变量
+            if(addr != -1)
+            {
+                //addr是相对$fp来说的
+                sprintf(tmp,"\t\tlw\t$a0\t%d($fp)\n",-1*addr);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            //否则是否为全局变量（优先使用局部变量）
+            else if(findInGlobalTab(midcodeTab.element[pos].num_b))
+            {
+                //la $t0 GLOBAL
+                //lw $a0 ($t0)
+                sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].num_b);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                sprintf(tmp,"\t\tlw\t$a0\t($t0)\n");
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                fprintf(stderr,"mips load: '%s\n' don't exist!\n",midcodeTab.element[pos].num_b);
+                exit(1);
+            }
+        }
+        //如果是int型 $v0 = 1
+        if(strcmp(midcodeTab.element[pos].rst,"int") == 0)
+        {
+            sprintf(tmp,"\t\tli\t$v0\t1\n");
+            fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        }
+        //如果是char型 $v0 = 11
+        else if(strcmp(midcodeTab.element[pos].rst,"char") == 0)
+        {
+            sprintf(tmp,"\t\tli\t$v0\t11\n");
+            fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        }
+        sprintf(tmp,"\t\tsyscall\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    pos++;
+}
+
+/**
+ * return
+ */ 
+void asmReturn()
+{
+    //把返回值存储到$v1
+    //ret, , , $_4
+    if(strcmp(midcodeTab.element[pos].rst,"") != 0)
+    {
+        if(midcodeTab.element[pos].rst[0] == '-' || 
+        isNum(midcodeTab.element[pos].rst[0]))
+        {
+            sprintf(tmp,"\t\tli\t$v1\t%d\n",midcodeTab.element[pos].rst);
+            fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        }
+        else
+        {
+            int addr = findInLocalTab(midcodeTab.element[pos].rst);
+            if(addr != -1)
+            {
+                sprintf(tmp,"\t\tlw\t$v1\t%d($fp)\n",-1*addr);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else if(findInGlobalTab(midcodeTab.element[pos].rst))
+            {
+                sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                sprintf(tmp,"\t\tlw\t$v1\t($t0)\n");
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                fprintf(stderr,"return: %s don't delcare!\n",midcodeTab.element[pos].rst);
+                exit(1);
+            }
+        }
+    }
+
+    //恢复寄存器
+    //a调用b，b调用c，c中的$ra是返回b的地址，栈中的ra（也就是b的ra）是返回a的地址
+    sprintf(tmp,"\t\tmov\t$t0\t$ra\n");//返回函数b的地址
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    sprintf(tmp,"\t\tlw\t$ra\t-4($fp)\n");//恢复b中的ra
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    sprintf(tmp,"\t\tadd\t$sp\t$fp\t$0\n");//$sp = $fp
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    sprintf(tmp,"\t\tlw\t$fp\t($fp)\n");//$fp = ($fp)
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    sprintf(tmp,"\t\tjr\t$t0\n");//jr $t0
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    pos++;
+}
+
 void asmRun()
 {
     midcodeTab = getMidCode();
@@ -682,10 +833,18 @@ void asmRun()
         {
             asmLabel();
         }
+        else if(strcmp(midcodeTab.element[pos].op,"prtf") == 0)
+        {
+            asmPrintf();
+        }
         else if(strcmp(midcodeTab.element[pos].op,"ret") == 0)
         {
-
+            asmReturn();
             break;
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"call") == 0)
+        {
+            asmCall();
         }
         
     }

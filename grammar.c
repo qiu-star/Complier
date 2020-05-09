@@ -1487,6 +1487,12 @@ void mainFunc()
         fprintf(stderr,"main: need a '{' !\n");
         exit(1);
     }
+    getSym();
     compoundState();
+    if(symID != RBPARENSYM)
+    {
+        fprintf(stderr,"main: need a '}' !\n");
+        exit(1);
+    }
     insertStringIntoFourVarCodeTab("end","","","main");
 }

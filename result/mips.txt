@@ -5,10 +5,6 @@ $string0:	.asciiz	"false"
 .globl main
 		j	main
 cmp:
-		sw	$fp	($sp)
-		add	$fp	$sp	$0
-		subi	$sp	$sp	4
-		sw	$ra	($sp)
 		subi	$sp	$sp	4
 		move	$t0	$a0
 		sw	$t0	-8($fp)
@@ -19,32 +15,44 @@ cmp:
 		subi	$sp	$sp	48
 		subi	$sp	$sp	4
 		subi	$sp	$sp	4
-		lw	$t0	-8($fp)
-		lw	$t1	-12($fp)
+		lw	$t0	-4($fp)
+		lw	$t1	-8($fp)
 		ble	$t0	$t1	_LABEL_0
-		lw	$t0	-12($fp)
+		lw	$t0	-8($fp)
 		li	$t1	1
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-72($fp)
-		lw	$t0	-72($fp)
-		sw	$t0	-8($fp)
-		lw	$t0	-8($fp)
-		lw	$t1	-12($fp)
+		sw	$t0	-68($fp)
+		lw	$t0	-68($fp)
+		sw	$t0	-4($fp)
+		lw	$t0	-4($fp)
+		lw	$t1	-8($fp)
 		sub	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-76($fp)
-		lw	$t0	-76($fp)
-		sw	$t0	-68($fp)
-		lw	$t0	-8($fp)
+		sw	$t0	-72($fp)
+		lw	$t0	-72($fp)
+		sw	$t0	-64($fp)
+		lw	$t0	-4($fp)
 		li	$t1	2
 		mul	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-80($fp)
-		lw	$t0	-80($fp)
-		lw	$t1	-12($fp)
+		sw	$t0	-76($fp)
+		lw	$t0	-76($fp)
+		lw	$t1	-8($fp)
 		sub	$t0	$t0	$t1
 		subi	$sp	$sp	4
+		sw	$t0	-80($fp)
+		lw	$t0	-80($fp)
+		sw	$t0	-60($fp)
+		j	_LABEL_1
+_LABEL_0:
+		li	$t0	0
+		sw	$t0	-4($fp)
+_LABEL_1:
+		lw	$t0	-4($fp)
+		sw	$t0	-60($fp)
+		lw	$t0	-60($fp)
+		lw	$t1	-8($fp)
+		add	$t0	$t0	$t1
+		subi	$sp	$sp	4
 		sw	$t0	-84($fp)
-		lw	$t0	-84($fp)
-		sw	$t0	-64($fp)
