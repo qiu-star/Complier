@@ -77,11 +77,12 @@ FourVarCodeTab getMidCode()
 void printFourVarCodeTab()
 {
     FILE *f = fopen("result/midCode.txt","w");
+    char* tmp = (char*)malloc(sizeof(char)*128);
     printf("----------------------四元式----------------------\n");
     for(int i = 0; i < fourVarCodeTab.length; i++)
     {
-        char* tmp = (char*)malloc(sizeof(char)*128);
         sprintf(tmp,"%s, %s, %s, %s\n",fourVarCodeTab.element[i].op,fourVarCodeTab.element[i].num_a,fourVarCodeTab.element[i].num_b,fourVarCodeTab.element[i].rst);
         fwrite(tmp,sizeof(char),strlen(tmp),f);
     }
+    fclose(f);
 }

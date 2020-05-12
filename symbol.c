@@ -215,4 +215,5 @@ void printSymTab()
         sprintf(tmp,"name: %10s type: %2d value: %2d param: %2d address: %2d\n",symTable.element[i].name,symTable.element[i].type,symTable.element[i].value,symTable.element[i].para,symTable.element[i].address);
         fwrite(tmp,sizeof(char),strlen(tmp),f);
     }
+    fclose(f);
 }

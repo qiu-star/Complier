@@ -7,3 +7,5 @@ name:          c type:  1 value:  1 param: -1 address: 15
 name:          d type:  1 value:  1 param: -1 address: 16
 name:       main type:  2 value:  0 param:  0 address:  0
 name:          f type:  1 value:  1 param: -1 address:  1
+name:          a type:  1 value:  1 param: -1 address:  2
+name:          b type:  1 value:  1 param: -1 address:  3

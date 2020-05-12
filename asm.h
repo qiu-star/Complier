@@ -55,6 +55,8 @@ void asmJmp();
 void asmLabel();
 void asmPrintf();
 void asmCall();
+void asmEnd();
+void asmCallParam();
 
 void printLocalVarTable();
 void printGlobalTable();

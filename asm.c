@@ -16,6 +16,7 @@ FourVarCodeTab midcodeTab;
 int pos = 0;
 int offset = 0;//$sp相对于$fp的偏移
 
+
 //写文件的字符串常量
 char tmp[128];
 
@@ -169,7 +170,6 @@ void asmGlobalVarDefine()
 
 /**
  * 将函数声明中的参数转换为mips
- * 默认函数的参数个数小于4,大于4的还要另加寄存器
  */ 
 void asmParam()
 {   
@@ -214,22 +214,13 @@ void asmParam()
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
             paramNum++;
             break;
-        default:
+        default://参数个数大于4时，会在调用函数时把参数压栈，也就是说直接为参数开辟这个栈空间就行
             break;
         }
         insertAddr(midcodeTab.element[pos].rst);
         pos++;
     }
 }
-
-/**
- * 常量说明
- * @TODO
- */
-void asmConstDeclare()
-{
-    //为这几个局部变量开辟栈空间
-} 
 
 /**
  * 变量说明
@@ -292,7 +283,7 @@ void asmLoad(string var, string reg)
         }
         else
         {
-            fprintf(stderr,"mips load: '%s\n' don't exist!\n",var);
+            fprintf(stderr,"mips load: '%s' don't exist!\n",var);
             exit(1);
         }
     }
@@ -481,6 +472,143 @@ void asmCall()
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
     }
     pos++;
+}
+
+/**
+ * 调用函数的参数
+ */ 
+void asmCallParam()
+{
+    int calParamNum = 0;
+    int addr;
+    while(strcmp(midcodeTab.element[pos].op,"cpara") == 0)
+    {
+        addr = findInLocalTab(midcodeTab.element[pos].rst);
+        //前四个参数存在$a0-$a3
+        switch (calParamNum)
+        {
+        case 0:
+            if(midcodeTab.element[pos].rst[0] == '-' || isNum(midcodeTab.element[pos].rst))
+            {
+                sprintf(tmp,"\t\tli\t$a0\t%s\n",midcodeTab.element[pos].rst);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                if(addr != -1)//局部变量
+                {
+                    sprintf(tmp,"\t\tlw\t$a0\t%d($fp)\n",-1*addr);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+                else if(findInGlobalTab(midcodeTab.element[pos].rst))
+                {
+                    sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                    sprintf(tmp,"\t\tlw\t$a0\t($t0)\n");
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+            }
+            break;
+        case 1:
+            if(midcodeTab.element[pos].rst[0] == '-' || isNum(midcodeTab.element[pos].rst))
+            {
+                sprintf(tmp,"\t\tli\t$a1\t%s\n",midcodeTab.element[pos].rst);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                if(addr != -1)//局部变量
+                {
+                    sprintf(tmp,"\t\tlw\t$a1\t%d($fp)\n",-1*addr);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+                else if(findInGlobalTab(midcodeTab.element[pos].rst))
+                {
+                    sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                    sprintf(tmp,"\t\tlw\t$a1\t($t0)\n");
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+            }
+            break;
+        case 2:
+            if(midcodeTab.element[pos].rst[0] == '-' || isNum(midcodeTab.element[pos].rst))
+            {
+                sprintf(tmp,"\t\tli\t$a2\t%s\n",midcodeTab.element[pos].rst);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                if(addr != -1)//局部变量
+                {
+                    sprintf(tmp,"\t\tlw\t$a2\t%d($fp)\n",-1*addr);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+                else if(findInGlobalTab(midcodeTab.element[pos].rst))
+                {
+                    sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                    sprintf(tmp,"\t\tlw\t$a2\t($t0)\n");
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+            }
+            break;
+        case 3:
+            if(midcodeTab.element[pos].rst[0] == '-' || isNum(midcodeTab.element[pos].rst))
+            {
+                sprintf(tmp,"\t\tli\t$a3\t%s\n",midcodeTab.element[pos].rst);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                if(addr != -1)//局部变量
+                {
+                    sprintf(tmp,"\t\tlw\t$a3\t%d($fp)\n",-1*addr);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+                else if(findInGlobalTab(midcodeTab.element[pos].rst))
+                {
+                    sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                    sprintf(tmp,"\t\tlw\t$a3\t($t0)\n");
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+            }
+            break;
+        default:
+            //存到栈中
+            //调用函数的栈(以当前$sp为基准)：
+            //$sp存$fp $sp-4存$ra $sp-8会把$a0存进去 $sp-12存$a1 $sp-16存$a2 $sp-20存$a3 也就是第四个参数后的参数依次存在$sp-24后
+            if(midcodeTab.element[pos].rst[0] == '-' || isNum(midcodeTab.element[pos].rst))
+            {
+                sprintf(tmp,"\t\tli\t$t8\t%s\n",midcodeTab.element[pos].rst);
+                fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            }
+            else
+            {
+                if(addr != -1)//局部变量
+                {
+                    sprintf(tmp,"\t\tlw\t$t8\t%d($fp)\n",-1*addr);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+                else if(findInGlobalTab(midcodeTab.element[pos].rst))
+                {
+                    sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                    sprintf(tmp,"\t\tlw\t$t8\t($t0)\n");
+                    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+                }
+            }
+            //调用函数的栈(以当前$sp为基准)：
+            //$sp存$fp $sp-4存$ra $sp-8会把$a0存进去 $sp-12存$a1 $sp-16存$a2 $sp-20存$a3 也就是第四个参数后的参数依次存在$sp-24后
+            sprintf(tmp,"\t\tsw\t$t8\t%d($sp)\n",-1*((calParamNum-4)*4+24));
+            fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+            break;
+        }
+        
+        calParamNum++;
+        pos++;
+    }
 }
 
 /**
@@ -709,9 +837,9 @@ void asmReturn()
     if(strcmp(midcodeTab.element[pos].rst,"") != 0)
     {
         if(midcodeTab.element[pos].rst[0] == '-' || 
-        isNum(midcodeTab.element[pos].rst[0]))
+        isNum(midcodeTab.element[pos].rst))
         {
-            sprintf(tmp,"\t\tli\t$v1\t%d\n",midcodeTab.element[pos].rst);
+            sprintf(tmp,"\t\tli\t$v1\t%s\n",midcodeTab.element[pos].rst);
             fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         }
         else
@@ -752,6 +880,39 @@ void asmReturn()
     pos++;
 }
 
+/**
+ * end
+ */ 
+void asmEnd()
+{
+    //函数调用
+    if(strcmp(midcodeTab.element[pos].rst,"main") != 0)
+    {
+        //恢复寄存器
+        //a调用b，b调用c，c中的$ra是返回b的地址，栈中的ra（也就是b的ra）是返回a的地址
+        sprintf(tmp,"\t\tmov\t$t0\t$ra\n");//返回函数b的地址
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tlw\t$ra\t-4($fp)\n");//恢复b中的ra
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tadd\t$sp\t$fp\t$0\n");//$sp = $fp
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tlw\t$fp\t($fp)\n");//$fp = ($fp)
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tjr\t$t0\n");//jr $t0
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    //main函数退出
+    else
+    {
+        sprintf(tmp,"\t\tli\t$v0\t10\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tsyscall\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    
+    pos++;
+}
+
 void asmRun()
 {
     midcodeTab = getMidCode();
@@ -767,7 +928,6 @@ void asmRun()
         }
         else if(strcmp(midcodeTab.element[pos].op,"para") == 0)//para, int, , a
         {
-            /*调用参数，默认参数个数小于等于4   */
             asmParam();
         }
         else if(strcmp(midcodeTab.element[pos].op,"inta") == 0 || 
@@ -825,6 +985,18 @@ void asmRun()
         {
             asmAssign();
         }
+        else if(strcmp(midcodeTab.element[pos].op,"[]=") == 0)
+        {
+            //[]=, 1, $_6, change
+            //@TODO
+            
+        }
+        else if(strcmp(midcodeTab.element[pos].op,"aassi") == 0)
+        {
+            //aassi, change, 0, $_0
+            //@TODO
+            
+        }
         else if(strcmp(midcodeTab.element[pos].op,"jmp") == 0)
         {
             asmJmp();
@@ -837,16 +1009,32 @@ void asmRun()
         {
             asmPrintf();
         }
+        else if(strcmp(midcodeTab.element[pos].op,"scf") == 0)
+        {
+            //@TODO
+            
+        }
         else if(strcmp(midcodeTab.element[pos].op,"ret") == 0)
         {
             asmReturn();
             break;
         }
+        else if(strcmp(midcodeTab.element[pos].op,"end") == 0)
+        {
+            asmEnd();
+        }
         else if(strcmp(midcodeTab.element[pos].op,"call") == 0)
         {
             asmCall();
         }
-        
+        else if(strcmp(midcodeTab.element[pos].op,"cpara") == 0)
+        {
+            //cpara, , , 1
+            //cpara, , , 2
+            //call, cmp, , $_5
+            //@TODO
+            
+        }
     }
 
     printGlobalTable();

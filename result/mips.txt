@@ -56,3 +56,9 @@ _LABEL_1:
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
 		sw	$t0	-84($fp)
+		lw	$v1	-84($fp)
+		mov	$t0	$ra
+		lw	$ra	-4($fp)
+		add	$sp	$fp	$0
+		lw	$fp	($fp)
+		jr	$t0

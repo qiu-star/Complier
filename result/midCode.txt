@@ -24,8 +24,12 @@ ret, , , $_4
 end, , , cmp
 func, , , main
 int, , , f
-cpara, , , 1
-cpara, , , 2
+int, , , a
+int, , , b
+=, 1, , a
+=, 2, , b
+cpara, , , a
+cpara, , , b
 call, cmp, , $_5
 =, $_5, , f
 +, 0, 1, $_6
