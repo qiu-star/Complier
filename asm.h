@@ -57,6 +57,8 @@ void asmPrintf();
 void asmCall();
 void asmEnd();
 void asmCallParam();
+void asmAssignArray();
+void asmArrayAssign();
 
 void printLocalVarTable();
 void printGlobalTable();

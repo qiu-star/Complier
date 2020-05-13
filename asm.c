@@ -913,6 +913,80 @@ void asmEnd()
     pos++;
 }
 
+/**
+ * 数组赋值
+ * 样例：change[0+1]=1; => []=, 1, $_6, change
+ */ 
+void asmAssignArray()
+{
+    asmLoad(midcodeTab.element[pos].num_a,"$t0");
+    
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    sprintf(tmp,"\t\tmul\t$t1\t$t1\t-4\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    int addr = findInLocalTab(midcodeTab.element[pos].rst);
+    if(addr != -1)//局部变量
+    {
+        sprintf(tmp,"\t\tli\t$t2\t%d\n",-1*addr);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tadd\t$t1\t$t2\t$t1\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tadd\t$t1\t$t1\t$fp\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tsw\t$t0\t($t1)\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    else if(findInGlobalTab(midcodeTab.element[pos].rst))
+    {
+        sprintf(tmp,"\t\tla\t$t2\t%s\n",midcodeTab.element[pos].rst);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tadd\t$t1\t$t2\t$t1\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tsw\t$t0\t($t1)\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    
+    pos++;
+}
+
+/**
+ * 把数组赋值给变量
+ * 样例：x = change[1+0] => aassi, change, $_9, $_10 (+, 1, 0, $_9)
+ */ 
+void asmArrayAssign()
+{
+    int addr = findInLocalTab(midcodeTab.element[pos].num_a);
+    if(addr != -1)//局部
+    {
+        sprintf(tmp,"\t\tli\t$t0\t%d\n",-1*addr);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tadd\t$t0\t$t0\t$fp");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    else if(findInGlobalTab(midcodeTab.element[pos].num_a))
+    {
+        sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].num_a);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+
+    asmLoad(midcodeTab.element[pos].num_b,"$t1");
+    sprintf(tmp,"\t\tmul\t$t1\t$t1\t-4\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    sprintf(tmp,"\t\tadd\t$t0\t$t0\t$t1\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    sprintf(tmp,"\t\tlw\t$t0\t($t0)\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    insertAddr(midcodeTab.element[pos].rst);
+    addr = findInLocalTab(midcodeTab.element[pos].rst);
+    sprintf(tmp,"\t\tsw\t$t0\t%d($fp)\n",-1*addr);
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+
+    pos++;
+}
+
 void asmRun()
 {
     midcodeTab = getMidCode();
@@ -987,15 +1061,11 @@ void asmRun()
         }
         else if(strcmp(midcodeTab.element[pos].op,"[]=") == 0)
         {
-            //[]=, 1, $_6, change
-            //@TODO
-            
+            asmAssignArray();
         }
         else if(strcmp(midcodeTab.element[pos].op,"aassi") == 0)
         {
-            //aassi, change, 0, $_0
-            //@TODO
-            
+            asmArrayAssign();
         }
         else if(strcmp(midcodeTab.element[pos].op,"jmp") == 0)
         {
@@ -1029,11 +1099,7 @@ void asmRun()
         }
         else if(strcmp(midcodeTab.element[pos].op,"cpara") == 0)
         {
-            //cpara, , , 1
-            //cpara, , , 2
-            //call, cmp, , $_5
-            //@TODO
-            
+            asmCallParam();
         }
     }
 
