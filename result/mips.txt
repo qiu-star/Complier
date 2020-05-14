@@ -74,11 +74,11 @@ main:
 		subi	$sp	$sp	4
 		subi	$sp	$sp	4
 		li	$t0	1
-		sw	$t0	-12($fp)
+		sw	$t0	-8($fp)
 		li	$t0	2
-		sw	$t0	-16($fp)
-		lw	$a0	-12($fp)
-		lw	$a1	-16($fp)
+		sw	$t0	-12($fp)
+		lw	$a0	-8($fp)
+		lw	$a1	-12($fp)
 		sw	$fp	($sp)
 		add	$fp	$sp	$0
 		subi	$sp	$sp	4
@@ -86,16 +86,16 @@ main:
 		jal	cmp
 		nop
 		subi	$sp	$sp	4
-		sw	$v1	-20($fp)
-		lw	$t0	-20($fp)
-		sw	$t0	-8($fp)
+		sw	$v1	-16($fp)
+		lw	$t0	-16($fp)
+		sw	$t0	-4($fp)
 		li	$t0	0
 		li	$t1	1
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-24($fp)
+		sw	$t0	-20($fp)
 		li	$t0	1
-		lw	$t1	-24($fp)
+		lw	$t1	-20($fp)
 		mul	$t1	$t1	-4
 		la	$t2	change
 		add	$t1	$t2	$t1
@@ -104,9 +104,9 @@ main:
 		li	$t1	2
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-28($fp)
+		sw	$t0	-24($fp)
 		li	$t0	2
-		lw	$t1	-28($fp)
+		lw	$t1	-24($fp)
 		mul	$t1	$t1	-4
 		la	$t2	change
 		add	$t1	$t2	$t1
@@ -115,43 +115,43 @@ main:
 		li	$t1	3
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-32($fp)
+		sw	$t0	-28($fp)
 		li	$t0	1
 		li	$t1	0
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-36($fp)
+		sw	$t0	-32($fp)
 		la	$t0	change
-		lw	$t1	-36($fp)
+		lw	$t1	-32($fp)
 		mul	$t1	$t1	-4
 		add	$t0	$t0	$t1
 		lw	$t0	($t0)
 		subi	$sp	$sp	4
-		sw	$t0	-40($fp)
+		sw	$t0	-36($fp)
 		li	$t0	1
 		li	$t1	1
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-44($fp)
-		lw	$t0	-44($fp)
+		sw	$t0	-40($fp)
+		lw	$t0	-40($fp)
 		li	$t1	1
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-48($fp)
+		sw	$t0	-44($fp)
 		la	$t0	change
-		lw	$t1	-48($fp)
+		lw	$t1	-44($fp)
 		mul	$t1	$t1	-4
 		add	$t0	$t0	$t1
 		lw	$t0	($t0)
 		subi	$sp	$sp	4
-		sw	$t0	-52($fp)
-		lw	$t0	-40($fp)
-		lw	$t1	-52($fp)
+		sw	$t0	-48($fp)
+		lw	$t0	-36($fp)
+		lw	$t1	-48($fp)
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-56($fp)
-		lw	$t0	-56($fp)
-		lw	$t1	-32($fp)
+		sw	$t0	-52($fp)
+		lw	$t0	-52($fp)
+		lw	$t1	-28($fp)
 		mul	$t1	$t1	-4
 		la	$t2	change
 		add	$t1	$t2	$t1
@@ -162,21 +162,21 @@ main:
 		add	$t0	$t0	$t1
 		lw	$t0	($t0)
 		subi	$sp	$sp	4
-		sw	$t0	-60($fp)
+		sw	$t0	-56($fp)
 		li	$t0	1
 		li	$t1	2
 		add	$t0	$t0	$t1
 		subi	$sp	$sp	4
-		sw	$t0	-64($fp)
+		sw	$t0	-60($fp)
 		la	$t0	change
-		lw	$t1	-64($fp)
+		lw	$t1	-60($fp)
 		mul	$t1	$t1	-4
 		add	$t0	$t0	$t1
 		lw	$t0	($t0)
 		subi	$sp	$sp	4
-		sw	$t0	-68($fp)
-		lw	$t0	-60($fp)
-		lw	$t1	-68($fp)
+		sw	$t0	-64($fp)
+		lw	$t0	-56($fp)
+		lw	$t1	-64($fp)
 		bge	$t0	$t1	_LABEL_2
 		la	$t0	change
 		li	$t1	5
@@ -184,8 +184,8 @@ main:
 		add	$t0	$t0	$t1
 		lw	$t0	($t0)
 		subi	$sp	$sp	4
-		sw	$t0	-72($fp)
-		lw	$a0	-72($fp)
+		sw	$t0	-68($fp)
+		lw	$a0	-68($fp)
 		li	$v0	1
 		syscall
 		j	_LABEL_3
@@ -196,12 +196,12 @@ _LABEL_2:
 		add	$t0	$t0	$t1
 		lw	$t0	($t0)
 		subi	$sp	$sp	4
-		sw	$t0	-76($fp)
+		sw	$t0	-72($fp)
 		la	$t0	$string0
 		move	$a0	$t0
 		li	$v0	4
 		syscall
-		lw	$a0	-76($fp)
+		lw	$a0	-72($fp)
 		li	$v0	1
 		syscall
 _LABEL_3:

@@ -620,15 +620,17 @@ void asmFunc()
     //函数名
     sprintf(tmp,"%s:\n",midcodeTab.element[pos].rst);
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    offset = 8;
     if(strcmp(midcodeTab.element[pos].rst,"main") == 0)
     {
         sprintf(tmp,"\t\tadd\t$fp\t$sp\t$0\n");
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        offset = 4;
     }
     //$sp = $sp -4,更新栈帧位置
     sprintf(tmp,"\t\tsubi\t$sp\t$sp\t4\n");
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-    offset = 8;
+    
     pos++;
 }
 
