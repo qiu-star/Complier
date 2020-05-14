@@ -54,6 +54,7 @@ void asmAssign();
 void asmJmp();
 void asmLabel();
 void asmPrintf();
+void asmScanf();
 void asmCall();
 void asmEnd();
 void asmCallParam();

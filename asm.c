@@ -450,7 +450,7 @@ void asmCall()
     //$sp = $sp -4
     sprintf(tmp,"\t\tsubi\t$sp\t$sp\t4\n");
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-    offset = 4;
+
     //将$ra压栈，返回地址存在$ra中
     sprintf(tmp,"\t\tsw\t$ra\t($sp)\n");
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
@@ -620,11 +620,15 @@ void asmFunc()
     //函数名
     sprintf(tmp,"%s:\n",midcodeTab.element[pos].rst);
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-
+    if(strcmp(midcodeTab.element[pos].rst,"main") == 0)
+    {
+        sprintf(tmp,"\t\tadd\t$fp\t$sp\t$0\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
     //$sp = $sp -4,更新栈帧位置
     sprintf(tmp,"\t\tsubi\t$sp\t$sp\t4\n");
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
-    offset += 4;
+    offset = 8;
     pos++;
 }
 
@@ -764,7 +768,7 @@ void asmPrintf()
         sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].num_a);
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         //将全部变量地址作为函数参数传递
-        sprintf(tmp,"\t\tmov\t$a0\t$t0\n");
+        sprintf(tmp,"\t\tmove\t$a0\t$t0\n");
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         
         sprintf(tmp,"\t\tli\t$v0\t4\n");
@@ -827,6 +831,40 @@ void asmPrintf()
     pos++;
 }
 
+void asmScanf()
+{
+    //scanf(f)  =>  scf, , int, f
+    if(strcmp(midcodeTab.element[pos].num_b,"int") == 0)
+    {
+        sprintf(tmp,"\t\tli\t$v0\t5\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    else if(strcmp(midcodeTab.element[pos].num_b,"char") == 0)
+    {
+        sprintf(tmp,"\t\tli\t$v0\t12\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    sprintf(tmp,"\t\tsyscall\n");
+    fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    //scanf函数运行结束后会将输入值存在$v0
+
+    int addr = findInLocalTab(midcodeTab.element[pos].rst);
+    //这块好像有问题
+    if(addr != -1)
+    {
+        sprintf(tmp,"\t\tsw\t$v0\t%d($fp)\n",-1*addr);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    else if(findInGlobalTab(midcodeTab.element[pos].rst))
+    {
+        sprintf(tmp,"\t\tla\t$t0\t%s\n",midcodeTab.element[pos].rst);
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+        sprintf(tmp,"\t\tsw\t$v0\t($t0)\n");
+        fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
+    }
+    pos++;
+}
+
 /**
  * return
  */ 
@@ -867,7 +905,7 @@ void asmReturn()
 
     //恢复寄存器
     //a调用b，b调用c，c中的$ra是返回b的地址，栈中的ra（也就是b的ra）是返回a的地址
-    sprintf(tmp,"\t\tmov\t$t0\t$ra\n");//返回函数b的地址
+    sprintf(tmp,"\t\tmove\t$t0\t$ra\n");//返回函数b的地址
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
     sprintf(tmp,"\t\tlw\t$ra\t-4($fp)\n");//恢复b中的ra
     fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
@@ -885,12 +923,14 @@ void asmReturn()
  */ 
 void asmEnd()
 {
+    printLocalVarTable();
+    localTab.len = 0;
     //函数调用
     if(strcmp(midcodeTab.element[pos].rst,"main") != 0)
     {
         //恢复寄存器
         //a调用b，b调用c，c中的$ra是返回b的地址，栈中的ra（也就是b的ra）是返回a的地址
-        sprintf(tmp,"\t\tmov\t$t0\t$ra\n");//返回函数b的地址
+        sprintf(tmp,"\t\tmove\t$t0\t$ra\n");//返回函数b的地址
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
         sprintf(tmp,"\t\tlw\t$ra\t-4($fp)\n");//恢复b中的ra
         fwrite(tmp,sizeof(char),strlen(tmp),mipsf);
@@ -1081,13 +1121,11 @@ void asmRun()
         }
         else if(strcmp(midcodeTab.element[pos].op,"scf") == 0)
         {
-            //@TODO
-            
+            asmScanf();
         }
         else if(strcmp(midcodeTab.element[pos].op,"ret") == 0)
         {
             asmReturn();
-            break;
         }
         else if(strcmp(midcodeTab.element[pos].op,"end") == 0)
         {
@@ -1118,7 +1156,7 @@ void printGlobalTable()
 
 void printLocalVarTable()
 {
-    printf("------------------var table------------------\n");
+    printf("------------------fun: %s var table------------------\n",midcodeTab.element[pos].rst);
     for(int i =0; i < localTab.len; i++)
     {
         printf("name: %s\t\taddr: %d\n",localTab.l[i].name,localTab.l[i].addr);
