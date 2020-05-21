@@ -46,7 +46,7 @@ cmp:
 		sw	$t0	-64($fp)
 		j	_LABEL_1
 _LABEL_0:
-		li	$t0	0
+		li	$t0	3
 		sw	$t0	-8($fp)
 _LABEL_1:
 		lw	$t0	-8($fp)

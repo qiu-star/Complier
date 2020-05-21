@@ -10,7 +10,7 @@ int cmp(int a, int b)
         d = a - b;
         c = a*2-b;
     }
-    else a = 0;
+    else a = 3;
     c = a;
     return (c+b);
 }

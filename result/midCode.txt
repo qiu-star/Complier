@@ -16,7 +16,7 @@ jne, , , _LABEL_0
 =, $_3, , c
 jmp, , , _LABEL_1
 lab:, , , _LABEL_0
-=, 0, , a
+=, 3, , a
 lab:, , , _LABEL_1
 =, a, , c
 +, c, b, $_4
